@@ -1,0 +1,44 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: schedule-observer
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: schedule-observer
+            image: voxelost/schedule_observer:v1.10
+            imagePullPolicy: IfNotPresent
+            envFrom:
+            - secretRef:
+                name: schedule-observer
+            volumeMounts:
+              - name: schedule-observer-cache-vol
+                mountPath: /data
+          volumes:
+            - name: schedule-observer-cache-vol
+              persistentVolumeClaim:
+                claimName: schedule-observer-cache-claim
+          restartPolicy: OnFailure
+
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  schedule: "*/20 * * * *"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: schedule-observer-cache-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Mi
+
+

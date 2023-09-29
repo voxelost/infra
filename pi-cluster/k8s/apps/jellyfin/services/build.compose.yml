@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  bazarr:
+    build:
+      dockerfile: bazarr.dockerfile
+    image: voxelost/bazarr
+    environment:
+    - 'PUID=0'
+    - 'PGID=65534'
+    - 'TZ=Europe/Warsaw'
+
+  radarr:
+    build:
+      dockerfile: radarr.dockerfile
+    image: voxelost/radarr
+    environment:
+    - 'PUID=0'
+    - 'PGID=65534'
+    - 'TZ=Europe/Warsaw'
+
+  sonarr:
+    build:
+      dockerfile: sonarr.dockerfile
+
+    image: voxelost/sonarr
+    environment:
+    - 'PUID=0'
+    - 'PGID=65534'
+    - 'TZ=Europe/Warsaw'
