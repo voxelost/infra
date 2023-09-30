@@ -47,7 +47,7 @@ spec:
               value: "0"
             - name: TZ
               value: Europe/Warsaw
-          image: voxelost/bazarr
+          image: voxelost/bazarr:v1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 6767

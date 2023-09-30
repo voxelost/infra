@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
         - name: qbittorrent
-          image: linuxserver/qbittorrent
+          image: linuxserver/qbittorrent:4.5.5
           imagePullPolicy: IfNotPresent
           resources: {}
           volumeMounts:

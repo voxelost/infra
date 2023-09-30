@@ -47,11 +47,14 @@ spec:
               value: "0"
             - name: TZ
               value: Europe/Warsaw
-          image: voxelost/sonarr
+          image: voxelost/sonarr:v1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8989
-          resources: {}
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 0.5Gi
           volumeMounts:
             - mountPath: /config
               name: sonarr-config

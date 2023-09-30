@@ -39,7 +39,7 @@ spec:
         io.kompose.service: flood
     spec:
       containers:
-        - image: jesec/flood
+        - image: jesec/flood:master
           name: flood
           imagePullPolicy: IfNotPresent
           ports:

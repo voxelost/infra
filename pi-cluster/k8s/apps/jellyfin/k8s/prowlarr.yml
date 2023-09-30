@@ -39,7 +39,7 @@ spec:
     spec:
       containers:
         - name: prowlarr
-          image: linuxserver/prowlarr
+          image: linuxserver/prowlarr:nightly-version-1.9.2.3990
           imagePullPolicy: IfNotPresent
           env:
             - name: PGID

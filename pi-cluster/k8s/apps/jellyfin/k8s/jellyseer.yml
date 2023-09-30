@@ -45,7 +45,7 @@ spec:
               value: debug
             - name: TZ
               value: Europe/Warsaw
-          image: fallenbagel/jellyseerr
+          image: fallenbagel/jellyseerr:1.7.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5055
