@@ -26,7 +26,7 @@ if __name__ == "__main__":
         multipass.cmd("chmod +w -R isofiles/install.amd/")
         multipass.cmd("gunzip isofiles/install.amd/initrd.gz")
         multipass.upload(
-            "/Users/voxelost/workspace/devops/infra/homelab/ansible/provisioning/os-img/thinkpad/tools/iso-editor/src/preseed.cfg",
+            "resources/preseed.cfg",
             "preseed.cfg",
         )
         multipass.cmd(
