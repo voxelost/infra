@@ -4,7 +4,7 @@ services:
   bazarr:
     build:
       dockerfile: bazarr.dockerfile
-    image: voxelost/bazarr
+    image: voxelost/bazarr:v1
     environment:
     - 'PUID=0'
     - 'PGID=65534'
@@ -13,7 +13,7 @@ services:
   radarr:
     build:
       dockerfile: radarr.dockerfile
-    image: voxelost/radarr
+    image: voxelost/radarr:v1
     environment:
     - 'PUID=0'
     - 'PGID=65534'
@@ -23,7 +23,7 @@ services:
     build:
       dockerfile: sonarr.dockerfile
 
-    image: voxelost/sonarr
+    image: voxelost/sonarr:v1
     environment:
     - 'PUID=0'
     - 'PGID=65534'
