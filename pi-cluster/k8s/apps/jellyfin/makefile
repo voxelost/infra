@@ -21,10 +21,17 @@ kompose:
 clean:
 	- podman machine stop jellyfin-builder
 
-kubectl-apply: ensure-podman push-images
+patch-pv:
+	$(error patch-pv won't work since StorageClass local-path will always create new PersistentVolumes for PersistentVolumeClaims)
+	./tools/pv-patcher.sh
+
+kubectl-apply-build: ensure-podman push-images
 	$(info deploying images to dockerhub)
-	kubectl apply --recursive -f k8s
+	$(MAKE) kubectl-apply
 	$(MAKE) clean
+
+kubectl-apply:
+	kubectl apply --recursive -f k8s
 
 kubectl-delete:
 	- kubectl delete --recursive -f k8s
