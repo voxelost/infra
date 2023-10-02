@@ -11,8 +11,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -28,8 +27,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -45,8 +43,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -62,8 +59,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -79,8 +75,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -96,8 +91,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 # media
@@ -114,8 +108,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -131,8 +124,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 # cache
@@ -149,8 +141,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -166,8 +157,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -183,8 +173,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
 
 ---
@@ -200,6 +189,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
-  storageClassName: local-path-retain
+      storage: 100Mi # local-path doesn't implement volume size limits
 status: {}
