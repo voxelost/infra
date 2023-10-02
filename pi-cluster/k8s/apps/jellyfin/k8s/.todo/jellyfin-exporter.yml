@@ -1,0 +1,73 @@
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   creationTimestamp: null
+#   labels:
+#     io.kompose.service: jellyfin-exporter
+#   name: jellyfin-exporter
+# spec:
+#   ports:
+#     - name: "6767"
+#       port: 6767
+#       targetPort: 6767
+#       # nodePort: 30005
+#   selector:
+#     io.kompose.service: jellyfin-exporter
+#   type: NodePort
+# status:
+#   loadBalancer: {}
+
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   creationTimestamp: null
+#   labels:
+#     io.kompose.service: jellyfin-exporter
+#   name: jellyfin-exporter
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       io.kompose.service: jellyfin-exporter
+#   strategy:
+#     type: Recreate
+#   template:
+#     metadata:
+#       creationTimestamp: null
+#       labels:
+#         io.kompose.service: jellyfin-exporter
+#     spec:
+#       containers:
+#         - name: jellyfin-exporter
+#           env:
+#             - name: PGID
+#               value: "65534"
+#             - name: PUID
+#               value: "0"
+#             - name: TZ
+#               value: Europe/Warsaw
+#           image: stenehall/jellyfin-exporter:0.2.0
+#           imagePullPolicy: IfNotPresent
+#           ports:
+#             - containerPort: 6767
+#           resources: {}
+#           volumeMounts:
+#             - mountPath: /config
+#               name: bazarr-config
+#             - mountPath: /home/movies
+#               name: radarr-movies
+#             - mountPath: /home/tv
+#               name: sonarr-tvseries
+#       restartPolicy: Always
+#       volumes:
+#         - name: bazarr-config
+#           persistentVolumeClaim:
+#             claimName: bazarr-config
+#         - name: radarr-movies
+#           persistentVolumeClaim:
+#             claimName: radarr-movies
+#         - name: sonarr-tvseries
+#           persistentVolumeClaim:
+#             claimName: sonarr-tvseries
+# status: {}
