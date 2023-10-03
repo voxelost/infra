@@ -99,12 +99,14 @@ class Multipass:
         if not dest.startswith("/"):
             dest = f"{self._workdir}/{dest}"
 
+        logging.debug(f"Uploading file {src} to {dest}")
         return self._transfer(src, f"{self._machine_name}:{dest}")
 
     def download(self, src: str, dest: str = "."):
         if not src.startswith("/"):
             src = f"{self._workdir}/{src}"
 
+        logging.debug(f"Downloading file {src} to {dest}")
         return self._transfer(f"{self._machine_name}:{src}", dest)
 
     def cmd(

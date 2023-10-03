@@ -4,6 +4,9 @@ from utils import Multipass
 
 
 ISO_FILENAME = "debian-12.1.0-amd64-netinst.iso"
+ISO_URL = (
+    f"http://ftp.icm.edu.pl/pub/Linux/debian-cd/12.1.0/amd64/iso-cd/{ISO_FILENAME}"
+)
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(os.getenv("LOG_LEVEL", "INFO"))
@@ -17,9 +20,7 @@ if __name__ == "__main__":
             logging.info("Found a cached .iso file, uploading to builder")
             multipass.upload(f".cache/{ISO_FILENAME}")
         else:
-            multipass.cmd(
-                f"wget http://ftp.icm.edu.pl/pub/Linux/debian-cd/12.1.0/amd64/iso-cd/{ISO_FILENAME}"
-            )
+            multipass.cmd(f"wget {ISO_URL}")
             multipass.download(ISO_FILENAME, f".cache/{ISO_FILENAME}")
         multipass.cmd(f"udevil mount {ISO_FILENAME} /media/root/{ISO_FILENAME}")
         multipass.cmd(f"cp -rT /media/root/{ISO_FILENAME} isofiles/")
