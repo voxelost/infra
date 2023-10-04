@@ -49,13 +49,31 @@ spec:
               cpu: 0.5
               memory: 1Gi
           volumeMounts:
-            - mountPath: /opt/bitname/prometheus/data
-              name: prometheus-cache
-      restartPolicy: Always
+            - name: prometheus-cache
+              mountPath: /opt/bitname/prometheus/data
+            - name: prometheus-config
+              mountPath: /opt/bitnami/prometheus/conf/prometheus.yml
+              readOnly: true
       volumes:
         - name: prometheus-cache
           persistentVolumeClaim:
             claimName: prometheus-cache
-
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+      restartPolicy: Always
 status: {}
 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    scrape_configs:
+      static_config:
+        targets:
+          - jellyfin-exporter:8080/metrics
+        labels:
+          - service_name: jellyfin
