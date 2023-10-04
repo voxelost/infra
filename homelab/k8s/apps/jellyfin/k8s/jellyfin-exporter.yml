@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: jellyfin-exporter
+  name: jellyfin-exporter
+spec:
+  ports:
+    - name: "prometheus-metrics"
+      port: 8080
+      targetPort: 8080
+  selector:
+    io.kompose.service: jellyfin-exporter
+status:
+  loadBalancer: {}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: jellyfin-exporter
+  name: jellyfin-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: jellyfin-exporter
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: jellyfin-exporter
+    spec:
+      containers:
+        - name: jellyfin-exporter
+          image: voxelost/jellyfin-exporter:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 1Gi
+          env:
+            - name: JELLYFIN_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: jellyfin-exporter-config
+                  key: jellyfin_api_url
+            - name: JELLYFIN_TOKEN
+              valueFrom:
+                secretKetRef:
+                  name: jellyfin-api-token
+                  key: jellyfin_token
+      restartPolicy: Always
+
+status: {}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jellyfin-exporter-config
+data:
+  jellyfin_api_url: http://jellyfin:8096
+

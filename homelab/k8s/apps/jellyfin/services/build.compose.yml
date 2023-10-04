@@ -28,3 +28,14 @@ services:
     - 'PUID=0'
     - 'PGID=65534'
     - 'TZ=Europe/Warsaw'
+
+  # rtorrent:
+  #   build:
+  #     dockerfile: rtorrent.dockerfile
+
+  #   image: voxelost/rtorrent:v1
+
+  jellyfin-exporter:
+    build:
+      dockerfile: jellyfin-exporter.dockerfile
+    image: voxelost/jellyfin-exporter:v2
