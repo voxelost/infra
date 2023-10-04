@@ -54,7 +54,7 @@ spec:
                   key: jellyfin_api_url
             - name: JELLYFIN_TOKEN
               valueFrom:
-                secretKetRef:
+                secretKeyRef:
                   name: jellyfin-api-token
                   key: jellyfin_token
       restartPolicy: Always
