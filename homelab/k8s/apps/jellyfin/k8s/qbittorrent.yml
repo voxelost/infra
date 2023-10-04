@@ -45,7 +45,10 @@ spec:
         - name: qbittorrent
           image: linuxserver/qbittorrent:4.5.5
           imagePullPolicy: IfNotPresent
-          resources: {}
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 1Gi
           volumeMounts:
             - mountPath: /downloads
               name: qbittorrent-downloads

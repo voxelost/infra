@@ -51,7 +51,10 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 6767
-          resources: {}
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 1Gi
           volumeMounts:
             - mountPath: /config
               name: bazarr-config

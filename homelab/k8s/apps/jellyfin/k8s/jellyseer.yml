@@ -49,7 +49,10 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5055
-          resources: {}
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 1Gi
           volumeMounts:
             - mountPath: /app/config
               name: jellyseer-config

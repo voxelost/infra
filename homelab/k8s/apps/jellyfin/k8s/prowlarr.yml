@@ -50,7 +50,10 @@ spec:
               value: Europe/Warsaw
           ports:
             - containerPort: 9696
-          resources: {}
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 1Gi
           volumeMounts:
             - mountPath: /config
               name: prowlarr-config
