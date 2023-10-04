@@ -36,9 +36,9 @@ dev:
 	MACHINE_CPUS=6 MACHINE_NAME=kind-cluster $(MAKE) ensure-podman
 	- kind create cluster --config dev/kind-config.yml
 	$(MAKE) kubectl-apply
-	$(MAKE) dashboard
-	$(MAKE) dashboard-token
-	$(MAKE) proxy
+	$(MAKE) control-plane
+
+control-plane: dashboard-token proxy
 
 clean:
 	- podman machine stop jellyfin-builder
