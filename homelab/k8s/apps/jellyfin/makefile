@@ -22,8 +22,9 @@ kompose:
 
 dashboard:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+	kubectl apply -f dev/ServiceAccount/sa.yml
 
-dashboard-token:
+dashboard-token: dashboard
 	$(info dashboard token is:)
 	@kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d
 	@printf '\n########################################################################\n'
@@ -34,8 +35,8 @@ proxy:
 dev:
 	MACHINE_CPUS=6 MACHINE_NAME=kind-cluster $(MAKE) ensure-podman
 	- kind create cluster --config dev/kind-config.yml
-	$(MAKE) dashboard
 	$(MAKE) kubectl-apply
+	$(MAKE) dashboard
 	$(MAKE) dashboard-token
 	$(MAKE) proxy
 
