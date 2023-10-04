@@ -24,6 +24,9 @@ metadata:
   creationTimestamp: null
   labels:
     io.kompose.service: prometheus
+  annotations:
+    configmap.reloader.stakater.com/reload: "prometheus-config"
+    secret.reloader.stakater.com/reload: "jellyfin-api-token"
   name: prometheus
 spec:
   replicas: 1
@@ -52,8 +55,8 @@ spec:
             - name: prometheus-cache
               mountPath: /opt/bitname/prometheus/data
             - name: prometheus-config
-              mountPath: /opt/bitnami/prometheus/conf/prometheus.yml
-              readOnly: true
+              mountPath: /opt/bitnami/prometheus/conf
+              # readOnly: true
       volumes:
         - name: prometheus-cache
           persistentVolumeClaim:
@@ -72,8 +75,7 @@ metadata:
 data:
   prometheus.yml: |
     scrape_configs:
-      static_config:
-        targets:
-          - jellyfin-exporter:8080/metrics
-        labels:
-          - service_name: jellyfin
+      - job_name: jellyfin
+        static_configs:
+          - targets:
+            - jellyfin-exporter:8080

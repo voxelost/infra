@@ -22,6 +22,8 @@ metadata:
   creationTimestamp: null
   labels:
     io.kompose.service: jellyfin-exporter
+  annotations:
+    secret.reloader.stakater.com/reload: "jellyfin-api-token"
   name: jellyfin-exporter
 spec:
   replicas: 1
