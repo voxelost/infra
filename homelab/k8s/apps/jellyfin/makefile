@@ -33,7 +33,7 @@ proxy:
 	kubectl proxy
 
 dev:
-	MACHINE_CPUS=6 MACHINE_NAME=kind-cluster $(MAKE) ensure-podman
+	MACHINE_CPUS=6 MACHINE_MEMORY=12288 MACHINE_NAME=kind-cluster $(MAKE) ensure-podman
 	- kind create cluster --config dev/kind-config.yml
 	$(MAKE) kubectl-apply
 	$(MAKE) control-plane
@@ -59,6 +59,7 @@ kubectl-apply-build:
 	$(MAKE) clean
 
 kubectl-apply:
+	kubectl apply -f https://raw.githubusercontent.com/stakater/Reloader/master/deployments/kubernetes/reloader.yaml
 	kubectl apply --recursive -f k8s
 
 kubectl-delete:
