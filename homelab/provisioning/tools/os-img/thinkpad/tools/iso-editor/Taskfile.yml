@@ -1,0 +1,14 @@
+version: '3'
+
+tasks:
+  generate-iso:
+    cmds:
+      - cmd: python3 main.py
+        dir: src
+        env:
+          LOG_LEVEL: debug
+
+  flash-usb:
+    cmds:
+      - hdiutil unmount /dev/disk4
+      - sudo dd if=src/preseeded-debian-12.1.0-amd64-netinst.iso of=/dev/disk4 bs=4M status=progress

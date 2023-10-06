@@ -1,0 +1,42 @@
+version: '3'
+
+tasks:
+  clone-usbboot:
+    cmd: git clone --depth=1 https://github.com/raspberrypi/usbboot
+    desc: Clone raspberrypi/usbboot GH repository
+    internal: true
+    status:
+      - "[ -d usbboot ]"
+    silent: true
+
+  ensure-usbboot:
+    cmd: git pull
+    dir: usbboot
+    desc: Ensure raspberrypi/usbboot is up-to-date
+    internal: true
+    deps:
+      - clone-usbboot
+
+  ensure-rpiboot:
+    cmd: make
+    dir: usbboot
+    desc: Ensure rpiboot binary is built
+    internal: true
+    deps:
+      - ensure-usbboot
+    generates:
+      - usbboot/rpiboot
+
+  rpiboot:
+    cmd: ./rpiboot
+    dir: usbboot
+    desc: Run rpiboot
+    deps:
+      - ensure-rpiboot
+    sources:
+      - usbboot/rpiboot
+
+  clean:
+    cmd: rm -rf usbboot
+    desc: Cleanup raspberrypi/usbboot from local path
+    ignore_error: true

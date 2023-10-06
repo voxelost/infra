@@ -1,0 +1,13 @@
+version: '3'
+
+tasks:
+  kubectl:apply:
+    desc: Apply application
+    cmds:
+      - kubectl apply --recursive -f k8s
+
+  kubectl:delete:
+    desc: Delete application
+    cmds:
+      - cmd: kubectl delete --recursive -f k8s
+        ignore_error: true

@@ -1,0 +1,36 @@
+version: '3'
+
+includes:
+  ddns:
+    taskfile: ./apps/ddns/
+    dir: ./apps/ddns/
+    internal: true
+
+  jellyfin:
+    taskfile: ./apps/jellyfin/
+    dir: ./apps/jellyfin/
+    internal: true
+
+  schedule-observer:
+    taskfile: ./apps/schedule-observer/
+    dir: ./apps/schedule-observer/
+    internal: true
+
+tasks:
+  kubectl:apply:
+    desc: Deploy all applications to the Kubernetes cluster
+    cmds:
+      - task: "{{.ITEM}}:kubectl:apply"
+        for:
+          - ddns
+          - jellyfin
+          - schedule-observer
+
+  kubectl:delete:
+    desc: Delete all applications from the Kubernetes cluster
+    cmds:
+      - task: "{{.ITEM}}:kubectl:delete"
+        for:
+          - ddns
+          - jellyfin
+          - schedule-observer

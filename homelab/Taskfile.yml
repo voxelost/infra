@@ -1,0 +1,37 @@
+version: '3'
+
+includes:
+  provisioning:cm4:common:
+    taskfile: provisioning/CM4/common
+    dir: provisioning/CM4/common
+    internal: true
+
+  k8s:
+    taskfile: k8s
+    dir: k8s
+    internal: true
+
+tasks:
+  provision-cluster:
+    cmds:
+      - task: provisioning:cm4:common:provision
+    desc: Provision the CM4 cluster
+
+  download-kubeconfig:
+    cmds:
+      - task: provisioning:cm4:common:download-kubeconfig
+      - cmd: rm -rf k8s/.kube.bak
+        ignore_error: true
+      - cmd: mv k8s/.kube k8s/.kube.bak
+      - mv provisioning/CM4/common/.kube.tmp k8s/.kube
+    desc: Download kubeconfig from the CM4 cluster
+
+  kubectl:apply:
+    cmds:
+      - task: "k8s:kubectl:apply"
+    desc: Deploy all applications to the Kubernetes cluster
+
+  kubectl:delete:
+    cmds:
+      - task: "k8s:kubectl:delete"
+    desc: Removy all applications from the Kubernetes cluster
