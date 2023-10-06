@@ -176,23 +176,6 @@ kind: PersistentVolumeClaim
 metadata:
   creationTimestamp: null
   labels:
-    io.kompose.service: flood-data
-  name: flood-data
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
-status: {}
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  creationTimestamp: null
-  labels:
     io.kompose.service: prometheus-cache
   name: prometheus-cache
 spec:
