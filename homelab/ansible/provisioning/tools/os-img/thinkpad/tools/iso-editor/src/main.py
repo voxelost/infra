@@ -1,14 +1,16 @@
 import os
 import logging
-from utils import Multipass
+from utils import Multipass, Libvirt
 
+if __name__ == "__main__":
+    l = Libvirt()
 
 ISO_FILENAME = "debian-12.1.0-amd64-netinst.iso"
 ISO_URL = (
     f"http://ftp.icm.edu.pl/pub/Linux/debian-cd/12.1.0/amd64/iso-cd/{ISO_FILENAME}"
 )
 
-if __name__ == "__main__":
+if __name__ != "__main__":
     logging.getLogger().setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
     with Multipass() as multipass:

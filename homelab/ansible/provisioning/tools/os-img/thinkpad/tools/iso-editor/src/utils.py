@@ -3,6 +3,7 @@ import logging
 import typing
 import uuid
 import os
+import libvirt
 
 
 class MultipassException(Exception):
@@ -117,3 +118,14 @@ class Multipass:
         stdin: str = "",
     ) -> str:
         return self._send_command(command, become, cwd, stdin)
+
+
+class Libvirt:
+    def __init__(self):
+        con: libvirt.virConnect
+        con = libvirt.open()
+        hn = con.getHostname()
+        print(con, hn)
+        # con.getCapabilities()
+        stats = con.getInfo()
+        print(stats)
