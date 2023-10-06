@@ -1,3 +1,2 @@
 
-
-document setup apps
+- document setup apps
