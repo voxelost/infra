@@ -16,8 +16,8 @@ nodes:
     hostPort: 3005
   - containerPort: 30006
     hostPort: 3006
-  - containerPort: 30007
-    hostPort: 3007
+  - containerPort: 30007 # qbittorrent
+    hostPort: 30007
   - containerPort: 30008
     hostPort: 3008
   - containerPort: 30009
