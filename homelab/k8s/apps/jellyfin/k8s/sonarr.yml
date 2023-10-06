@@ -7,7 +7,7 @@ metadata:
   name: sonarr
 spec:
   ports:
-    - name: "8989"
+    - name: "webui"
       port: 8989
       targetPort: 8989
       nodePort: 30004
