@@ -1,0 +1,19 @@
+version: '3'
+
+tasks:
+  reset:
+    desc: Reset the cluster to a clean state
+    cmds:
+      - ansible-playbook reset.yml -i inventory/cluster/hosts.ini
+
+  provision:
+    desc: Provision the cluster
+    cmds:
+      - ansible-playbook setup.yml -i inventory/cluster/hosts.ini
+
+  download-kubeconfig:
+    desc: Download kubeconfig file from the cluster to .kube.tmp
+    cmds:
+      - cmd: rm -rf .kube.tmp
+        ignore_error: true
+      - scp -r pi@master.local:~/.kube .kube.tmp
