@@ -28,10 +28,10 @@ tasks:
 
   kubectl:apply:
     cmds:
-      - task: "k8s:kubectl:apply"
+      - task: k8s:kubectl:apply
     desc: Deploy all applications to the Kubernetes cluster
 
   kubectl:delete:
     cmds:
-      - task: "k8s:kubectl:delete"
+      - task: k8s:kubectl:delete
     desc: Removy all applications from the Kubernetes cluster
