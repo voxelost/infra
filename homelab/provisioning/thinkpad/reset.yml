@@ -1,0 +1,7 @@
+---
+
+- hosts: thinkpad
+  become: yes
+  roles:
+    - role: prereq
+    - role: storage

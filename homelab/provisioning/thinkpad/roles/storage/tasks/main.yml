@@ -1,0 +1,35 @@
+---
+
+- name: Install btrfs-progs dependency
+  ansible.builtin.apt:
+    name: btrfs-progs
+    force: true
+
+- name: Ensure data device is unmounted
+  ansible.posix.mount:
+    path: /dev/sdb1
+    state: unmounted
+
+- name: Ensure data path is unmounted
+  ansible.posix.mount:
+    path: /var/data
+    state: unmounted
+
+- name: Setup btrfs on data partition
+  ansible.builtin.command: mkfs.btrfs -f /dev/sdb1
+
+- name: Ensure data directory exists
+  ansible.builtin.file:
+    path: /var/data
+    state: directory
+
+- name: Remount data directory under SSD
+  ansible.posix.mount:
+    path: /var/data
+    src: /dev/sdb1
+    state: mounted
+    fstype: btrfs
+
+# - name: Try to add external drive to btrfs
+#   ansible.builtin.command: btrfs device add -f /dev/sda1 /var/lib/rancher/k3s
+#   ignore_errors: true

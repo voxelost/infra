@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+  desc: Reset thinkpad to a clean state
+  reset:
+    cmds:
+      - ansible-playbook reset.yml -i inventory/cluster/hosts.ini

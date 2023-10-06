@@ -1,0 +1,2 @@
+
+- https://andrewdupont.net/2022/01/27/using-mdns-aliases-within-your-home-network/
