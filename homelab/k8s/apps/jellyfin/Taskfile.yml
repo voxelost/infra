@@ -5,19 +5,22 @@ tasks:
     vars:
       MACHINE_CPUS: 4
       MACHINE_MEMORY: 8096
+      MACHINE_NAME: ""
     cmds:
-      - cmd: podman machine init --cpus ${MACHINE_CPUS} --memory ${MACHINE_MEMORY} ${MACHINE_NAME}
+      - cmd: podman machine init --cpus {{.MACHINE_CPUS}} --memory {{.MACHINE_MEMORY}} {{.MACHINE_NAME}}
         ignore_error: true
-      - cmd: podman machine stop ${MACHINE_NAME}
+      - cmd: podman machine stop {{.MACHINE_NAME}}
         ignore_error: true
-      - cmd: podman machine set --rootful ${MACHINE_NAME}
+      - cmd: podman machine set --rootful {{.MACHINE_NAME}}
         ignore_error: true
-      - cmd: podman machine start ${MACHINE_NAME}
+      - cmd: podman machine start {{.MACHINE_NAME}}
         ignore_error: true
 
   build-images:
     deps:
-      - ensure-podman
+      - cmd: ensure-podman
+        vars:
+          MACHINE_NAME: jellyfin-builder
     cmds:
       - docker compose -f services/build.compose.yml build --pull
 
