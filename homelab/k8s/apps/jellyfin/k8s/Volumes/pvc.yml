@@ -12,7 +12,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 ---
@@ -29,7 +29,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 ---
@@ -46,7 +46,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 ---
@@ -63,7 +63,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 ---
@@ -80,7 +80,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 ---
@@ -97,7 +97,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 # media
@@ -115,7 +115,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 ---
@@ -132,7 +132,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 # cache
@@ -150,7 +150,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 ---
@@ -167,7 +167,7 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
 
 ---
@@ -184,5 +184,5 @@ spec:
   resources:
     requests:
       storage: 100Mi # local-path doesn't implement volume size limits
-  storageClassName: local-path
+  # storageClassName: local-path
 status: {}
