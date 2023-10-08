@@ -1,6 +1,6 @@
 import os
 import logging
-from utils import Multipass, Libvirt
+from utils import Multipass
 
 ISO_FILENAME = "debian-12.1.0-amd64-netinst.iso"
 ISO_URL = (
@@ -20,7 +20,7 @@ if __name__ == "__main__":
             multipass.upload(f".cache/{ISO_FILENAME}")
         else:
             multipass.cmd(f"wget {ISO_URL}")
-            multipass.download(ISO_FILENAME, f".cache/{ISO_FILENAME}")
+            multipass.download(ISO_FILENAME, ".cache")
         multipass.cmd(f"udevil mount {ISO_FILENAME} /media/root/{ISO_FILENAME}")
         multipass.cmd(f"cp -rT /media/root/{ISO_FILENAME} isofiles/")
         multipass.cmd("chmod +w -R isofiles/install.amd/")
@@ -46,4 +46,4 @@ if __name__ == "__main__":
         multipass.cmd("chmod +w -R isofiles")
         multipass.cmd("rm -r isofiles")
         multipass.cmd(f"udevil unmount /media/root/{ISO_FILENAME}")
-        multipass.download(f"preseeded-{ISO_FILENAME}")
+        multipass.download(f"preseeded-{ISO_FILENAME}", "out")

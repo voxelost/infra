@@ -3,7 +3,6 @@ import logging
 import typing
 import uuid
 import os
-import libvirt
 
 
 class MultipassException(Exception):
@@ -38,10 +37,18 @@ class Multipass:
         self._shell_cmd(f"multipass delete {self._machine_name}")
 
     def _authenticate(self):
+        _auth = os.getenv("MULTIPASS_AUTH")
+        if _auth is None:
+            logging.error(
+                "Env var MULTIPASS_AUTH needs to be set to authenticate multipass"
+            )
+
         logging.info(
             "Authenticating multipass. You may need to input the sudo password now"
         )
-        self._shell_cmd(f"sudo multipass authenticate {os.getenv('MULTIPASS_AUTH')}")
+        self._shell_cmd(
+            f"sudo multipass authenticate {_auth}",
+        )
 
     def _build_command(
         self,
@@ -100,15 +107,19 @@ class Multipass:
         if not dest.startswith("/"):
             dest = f"{self._workdir}/{dest}"
 
-        logging.debug(f"Uploading file {src} to {dest}")
+        logging.debug(f"Uploading file {os.path.basename(src)}")
         return self._transfer(src, f"{self._machine_name}:{dest}")
 
     def download(self, src: str, dest: str = "."):
         if not src.startswith("/"):
             src = f"{self._workdir}/{src}"
 
-        logging.debug(f"Downloading file {src} to {dest}")
-        return self._transfer(f"{self._machine_name}:{src}", dest)
+        _dest = os.path.abspath(dest)
+        logging.debug(f"Ensuring {_dest} exists")
+        os.makedirs(os.path.abspath(dest), exist_ok=True)
+
+        logging.debug(f"Downloading file {os.path.basename(src)}")
+        return self._transfer(f"{self._machine_name}:{src}", _dest)
 
     def cmd(
         self,
@@ -120,12 +131,13 @@ class Multipass:
         return self._send_command(command, become, cwd, stdin)
 
 
-class Libvirt:
-    def __init__(self):
-        con: libvirt.virConnect
-        con = libvirt.open()
-        hn = con.getHostname()
-        print(con, hn)
-        # con.getCapabilities()
-        stats = con.getInfo()
-        print(stats)
+# class Libvirt:
+#     # import libvirt
+#     def __init__(self):
+#         con: libvirt.virConnect
+#         con = libvirt.open()
+#         hn = con.getHostname()
+#         print(con, hn)
+#         # con.getCapabilities()
+#         stats = con.getInfo()
+#         print(stats)
