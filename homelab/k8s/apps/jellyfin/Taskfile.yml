@@ -7,7 +7,7 @@ tasks:
     ignore_error: true
     vars:
       MACHINE_CPUS: "{{or .MACHINE_CPUS 4}}"
-      MACHINE_MEMORY: "{{or .MACHINE_MEMORY 8096}}"
+      MACHINE_MEMORY: "{{or .MACHINE_MEMORY 8192}}"
       MACHINE_NAME: "{{or .MACHINE_NAME default}}"
     cmds:
       - cmd: podman machine init --cpus {{.MACHINE_CPUS}} --memory {{.MACHINE_MEMORY}} {{.MACHINE_NAME}}
