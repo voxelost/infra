@@ -1,2 +1,5 @@
 *.iso
 .cache
+.env
+resources/
+out
