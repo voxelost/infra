@@ -2,21 +2,21 @@ version: '3'
 
 tasks:
   ensure-podman:
+    desc: Ensure a podman machine is present
+    internal: true
+    ignore_error: true
     vars:
-      MACHINE_CPUS: 4
-      MACHINE_MEMORY: 8096
-      MACHINE_NAME: ""
+      MACHINE_CPUS: "{{or .MACHINE_CPUS 4}}"
+      MACHINE_MEMORY: "{{or .MACHINE_MEMORY 8096}}"
+      MACHINE_NAME: "{{or .MACHINE_NAME default}}"
     cmds:
       - cmd: podman machine init --cpus {{.MACHINE_CPUS}} --memory {{.MACHINE_MEMORY}} {{.MACHINE_NAME}}
-        ignore_error: true
       - cmd: podman machine stop {{.MACHINE_NAME}}
-        ignore_error: true
       - cmd: podman machine set --rootful {{.MACHINE_NAME}}
-        ignore_error: true
       - cmd: podman machine start {{.MACHINE_NAME}}
-        ignore_error: true
 
   build-images:
+    internal: true
     deps:
       - cmd: ensure-podman
         vars:
@@ -25,6 +25,7 @@ tasks:
       - docker compose -f services/build.compose.yml build --pull
 
   push-images:
+    desc: Build and push local ./services/build.compose.yml manifest
     deps:
       - build-images
     cmds:
@@ -32,11 +33,13 @@ tasks:
       - docker compose -f services/build.compose.yml push
 
   dashboard:
+    desc: Ensure the Kubernetes dashboard with a dedicated ServiceAccount are created
     cmds:
       - kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
       - kubectl apply -f dev/ServiceAccount/sa.yml
 
   dashboard-token:
+    desc: Copy the Bearer Token for Kubernetes dashboard to clipboard
     deps:
       - dashboard
     cmds:
@@ -44,19 +47,21 @@ tasks:
       - echo 'token copied to clipboard'
 
   proxy:
+    desc: "Start Kubernetes proxy (WARN: this is a blocking task)"
     cmds:
       - kubectl proxy
 
   dev:
+    desc: Start a development env
     cmds:
-      - cmd: ensure-podman
+      - task: ensure-podman
         vars:
           MACHINE_CPUS: 6
           MACHINE_MEMORY: 12288
           MACHINE_NAME: kind-cluster
       - cmd: kind create cluster --config dev/kind-config.yml
         ignore_error: true
-      - task: kubectl-apply
+      - task: kubectl:apply
       - task: control-plane
 
   control-plane:
@@ -65,19 +70,17 @@ tasks:
       - task: proxy
 
   clean:
-    tasks:
+    desc: Cleanup development env
+    ignore_error: true
+    cmds:
       - cmd: podman machine stop jellyfin-builder
-        ignore_error: true
       - cmd: podman machine rm jellyfin-builder <<< 'y'
-        ignore_error: true
       - cmd: kind delete cluster
-        ignore_error: true
       - cmd: podman machine stop kind-cluster
-        ignore_error: true
       - cmd: podman machine rm kind-cluster <<< 'y'
-        ignore_error: true
 
   kubectl-apply-build:
+    desc: Build and push local docker images and deploy application
     deps:
       - push-images
     cmds:
@@ -91,6 +94,5 @@ tasks:
 
   kubectl:delete:
     desc: Delete application
-    cmds:
-      - cmd: kubectl delete --recursive -f k8s
-        ignore_error: true
+    ignore_error: true
+    cmd: kubectl delete --recursive -f k8s
