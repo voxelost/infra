@@ -1,0 +1,27 @@
+version: '3'
+
+tasks:
+  ensure-pdm:
+    desc: Ensure the pdm is initiated and a virtual environment is created
+    internal: true
+    cmds:
+      - pdm install
+      - $(pdm venv activate)
+
+  generate-iso:
+    cmd: python3 main.py
+    desc: Generate a preseeded Debian ISO
+    dir: src
+    deps:
+      - task: ensure-pdm
+    env:
+      LOG_LEVEL: DEBUG
+    dotenv:
+      - .vscode/.env
+
+  flash-usb:
+    desc: This task assumes A LOT and will be removed at some point
+    dir: src
+    cmds:
+      - hdiutil unmount /dev/disk4
+      - sudo dd if=preseeded-debian-12.1.0-amd64-netinst.iso of=/dev/disk4 bs=4M status=progress
