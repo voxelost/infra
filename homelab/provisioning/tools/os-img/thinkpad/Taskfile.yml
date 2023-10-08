@@ -11,17 +11,26 @@ tasks:
   generate-iso:
     cmd: python3 main.py
     desc: Generate a preseeded Debian ISO
+    sources:
+      - resources/preseed.cfg
+    generates:
+      - out/preseeded-debian-12.1.0-amd64-netinst.iso
     dir: src
     deps:
       - task: ensure-pdm
     env:
       LOG_LEVEL: DEBUG
     dotenv:
-      - .vscode/.env
+      - .env
 
   flash-usb:
     desc: This task assumes A LOT and will be removed at some point
-    dir: src
+    deps:
+      - task: generate-iso
+    preconditions:
+      - "[ -d src/out ]"
+    vars:
+      MEDIA_DEVICE: '{{or .MEDIA_DEVICE "/dev/disk4"}}'
     cmds:
-      - hdiutil unmount /dev/disk4
-      - sudo dd if=preseeded-debian-12.1.0-amd64-netinst.iso of=/dev/disk4 bs=4M status=progress
+      - hdiutil unmount {{.MEDIA_DEVICE}}
+      - sudo dd if=src/out/preseeded-debian-12.1.0-amd64-netinst.iso of={{.MEDIA_DEVICE}} bs=4M status=progress
