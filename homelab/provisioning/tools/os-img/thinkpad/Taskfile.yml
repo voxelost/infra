@@ -1,5 +1,10 @@
 version: '3'
 
+env:
+  DEBIAN_ISO_VERSION: 11.7.0
+  DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
+  DEBIAN_ISO_URL: https://cdimage.debian.org/cdimage/archive/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
+
 tasks:
   ensure-pdm:
     desc: Ensure the pdm is initiated and a virtual environment is created
@@ -14,12 +19,16 @@ tasks:
     sources:
       - resources/preseed.cfg
     generates:
-      - out/preseeded-debian-12.1.0-amd64-netinst.iso
+      - out/preseeded-{{.DEBIAN_ISO_FILENAME}}
+    requires:
+      vars:
+        - DEBIAN_ISO_FILENAME
+        - DEBIAN_ISO_URL
+    env:
+      LOG_LEVEL: DEBUG
     dir: src
     deps:
       - task: ensure-pdm
-    env:
-      LOG_LEVEL: DEBUG
     dotenv:
       - .env
 
@@ -31,6 +40,9 @@ tasks:
       - "[ -d src/out ]"
     vars:
       MEDIA_DEVICE: '{{or .MEDIA_DEVICE "/dev/disk4"}}'
+    requires:
+      vars:
+        - DEBIAN_ISO_FILENAME
     cmds:
       - hdiutil unmount {{.MEDIA_DEVICE}}
-      - sudo dd if=src/out/preseeded-debian-12.1.0-amd64-netinst.iso of={{.MEDIA_DEVICE}} bs=4M status=progress
+      - sudo dd if=src/out/preseeded-{{.DEBIAN_ISO_FILENAME}} of={{.MEDIA_DEVICE}} bs=4M status=progress
