@@ -1,7 +1,7 @@
 version: '3'
 
 tasks:
-  reset:
-    desc: Reset thinkpad to a clean state
+  setup:
+    desc: Setup thinkpad
     cmds:
-      - ansible-playbook reset.yml
+      - ansible-playbook setup.yml
