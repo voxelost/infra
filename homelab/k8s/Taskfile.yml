@@ -16,21 +16,65 @@ includes:
     dir: ./apps/schedule-observer/
     internal: true
 
+  cm4-provisioning:
+    taskfile: ../provisioning/CM4/common/
+    dir: ../provisioning/CM4/common/
+    internal: true
+
 tasks:
-  kubectl:apply:
-    desc: Deploy all applications to the Kubernetes cluster
+  setup-kubectl:
+    internal: true
+    desc: Pull kubeconfig file and set KUBECONFIG var
+    deps:
+      - task: cm4-provisioning:setup-kubectl
     cmds:
+      - cp -r ../provisioning/CM4/common/.kube .
+      - export KUBECONFIG=${PWD}/.kube/config
+
+  ensure-ganesha-provisioner:
+    status:
+      - '[ $(helm list --filter="ganesha-nfs-stable" | wc -l) -gt 1 ]'
+    cmds:
+      - helm repo add nfs-ganesha-server-and-external-provisioner https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/
+      - cmd: >
+          helm install ganesha-nfs-stable nfs-ganesha-server-and-external-provisioner/nfs-server-provisioner
+          --set=storageClass.defaultClass=true,storageClass.reclaimPolicy=Retain
+
+  kubectl:apply:
+    desc: Deploy applications to the Kubernetes cluster (all under ./apps by default)
+    summary: |
+      Deploy applications to the Kubernetes cluster (all under ./apps by default)
+      if any apps are passed as CLI arguments, those will be deployed instead
+    deps:
+      - task: setup-kubectl
+        silent: true
+      - task: ensure-ganesha-provisioner
+    vars:
+      _ALL_APPS:
+        sh: cd apps && find . -type dir -d 1 -exec basename {} \;
+      _DEFAULT_APPS: '{{catLines ._ALL_APPS}}'
+      _TO_APPLY: '{{or .CLI_ARGS ._DEFAULT_APPS}}'
+    cmds:
+      - cmd: echo
       - task: "{{.ITEM}}:kubectl:apply"
         for:
-          - ddns
-          - jellyfin
-          - schedule-observer
+          var: _TO_APPLY
 
   kubectl:delete:
-    desc: Delete all applications from the Kubernetes cluster
+    desc: Delete applications from the Kubernetes cluster (all ./apps/* by default)
+    summary: |
+      Delete applications to the Kubernetes cluster (all ./apps/* by default)
+      if any apps are passed as CLI arguments, those will be deleted instead
+    deps:
+      - task: setup-kubectl
+        silent: true
+      - task: ensure-ganesha-provisioner
+    vars:
+      _ALL_APPS:
+        sh: cd apps && find . -type dir -d 1 -exec basename {} \;
+      _DEFAULT_APPS: '{{catLines ._ALL_APPS}}'
+      _TO_DELETE: '{{or .CLI_ARGS ._DEFAULT_APPS}}'
     cmds:
       - task: "{{.ITEM}}:kubectl:delete"
         for:
-          - ddns
-          - jellyfin
-          - schedule-observer
+          var: _TO_DELETE
