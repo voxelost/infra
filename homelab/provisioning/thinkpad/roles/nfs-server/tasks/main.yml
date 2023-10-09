@@ -1,0 +1,24 @@
+---
+- name: Ensure tools
+  ansible.builtin.apt:
+    update_cache: true
+    pkg: nfs-server
+
+- name: Ensure nfs-server.service
+  ansible.builtin.systemd_service:
+    name: nfs-server
+    state: started
+    enabled: true
+
+- name: Upload /etc/exports
+  ansible.builtin.copy:
+    src: exports
+    dest: /etc/exports
+  register: exports_file
+
+- name: Reload nfs-server.service
+  ansible.builtin.systemd_service:
+    name: nfs-server
+    state: restarted
+    enabled: true
+  when: exports_file.changed
