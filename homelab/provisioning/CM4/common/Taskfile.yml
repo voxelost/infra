@@ -11,9 +11,15 @@ tasks:
     cmds:
       - ansible-playbook setup.yml -i inventory/cluster/hosts.ini
 
-  download-kubeconfig:
-    desc: Download kubeconfig file from the cluster to .kube.tmp
+  setup-kubectl:
+    desc: Download kubeconfig file from the cluster to .kube and set kubectl context
+    generates:
+      - .kube/config
     cmds:
-      - cmd: rm -rf .kube.tmp
+      - cmd: rm -rf .kube
         ignore_error: true
-      - scp -r pi@master.local:~/.kube .kube.tmp
+      - scp -i master.pem -r pi@master.local:~/.kube .kube
+      - cmd: echo "You need to export the new kubeconfig file now:"
+        silent: true
+      - cmd: echo "export KUBECONFIG=${PWD}/.kube/config"
+        silent: true
