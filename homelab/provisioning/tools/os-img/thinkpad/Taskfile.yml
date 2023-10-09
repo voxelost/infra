@@ -1,9 +1,11 @@
 version: '3'
 
 env:
-  DEBIAN_ISO_VERSION: 11.7.0
+  DEBIAN_CURRENT: "TRUE"
+  DEBIAN_ISO_VERSION: 12.2.0 # 11.7.0
+  DEBIAN_CD_SOURCE: '{{if eq .DEBIAN_CURRENT "TRUE"}}debian-cd{{else}}cdimage/archive{{end}}'
   DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
-  DEBIAN_ISO_URL: https://cdimage.debian.org/cdimage/archive/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
+  DEBIAN_ISO_URL: https://cdimage.debian.org/{{.DEBIAN_CD_SOURCE}}/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
 
 tasks:
   ensure-pdm:
