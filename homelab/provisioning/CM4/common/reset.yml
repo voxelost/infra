@@ -4,5 +4,5 @@
   gather_facts: yes
   become: yes
   roles:
-    - role: reset
-    - role: setup_storage
+    # - role: reset
+    - role: storage
