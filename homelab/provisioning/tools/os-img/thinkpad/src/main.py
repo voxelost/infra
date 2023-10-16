@@ -28,8 +28,12 @@ if __name__ == "__main__":
             "resources/preseed.cfg",
             "preseed.cfg",
         )
+        multipass.upload("resources/setup.sh", "setup.sh")
         multipass.cmd(
             "cpio -H newc -o -A -F isofiles/install.amd/initrd", stdin="preseed.cfg"
+        )
+        multipass.cmd(
+            "cpio -H newc -o -A -F isofiles/install.amd/initrd", stdin="setup.sh"
         )
         multipass.cmd("gzip isofiles/install.amd/initrd")
         multipass.cmd("chmod -w -R isofiles/install.amd/")

@@ -20,6 +20,7 @@ tasks:
     desc: Generate a preseeded Debian ISO
     sources:
       - resources/preseed.cfg
+      - resources/setup.sh
     generates:
       - out/preseeded-{{.DEBIAN_ISO_FILENAME}}
     requires:
