@@ -1,6 +1,6 @@
 *.iso
 .cache
+.out
 .env
-resources/*
-!resources/example.*
-out
+configs/*
+!configs/example.*
