@@ -3,12 +3,12 @@ version: '3'
 env:
   DEBIAN_CURRENT: "TRUE"
   DEBIAN_ISO_VERSION: 12.2.0 # 11.7.0
-  FLASH_TARGET_CONFIG: nuc
+  TARGET_CONFIG: nuc
   DEBIAN_CD_SOURCE: '{{if eq .DEBIAN_CURRENT "TRUE"}}debian-cd{{else}}cdimage/archive{{end}}'
   DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
   DEBIAN_ISO_URL: https://cdimage.debian.org/{{.DEBIAN_CD_SOURCE}}/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
-  FLASH_TARGET_CONFIG_FILE: configs/{{.FLASH_TARGET_CONFIG}}.yml
-  PRESEEDED_ISO_FILENAME: preseeded-{{.FLASH_TARGET_CONFIG}}-{{.DEBIAN_ISO_FILENAME}}
+  TARGET_CONFIG_FILE: configs/{{.TARGET_CONFIG}}.yml
+  PRESEEDED_ISO_FILENAME: preseeded-{{.TARGET_CONFIG}}-{{.DEBIAN_ISO_FILENAME}}
 
 tasks:
   ensure-pdm:
@@ -24,14 +24,14 @@ tasks:
     sources:
       - templates/preseed.cfg.j2
       - templates/setup.sh.j2
-      - configs/{{.FLASH_TARGET_CONFIG_FILE}}
+      - "{{.TARGET_CONFIG_FILE}}"
     generates:
       - .out/{{.PRESEEDED_ISO_FILENAME}}
     requires:
       vars:
         - DEBIAN_ISO_FILENAME
         - DEBIAN_ISO_URL
-        - FLASH_TARGET_CONFIG_FILE
+        - TARGET_CONFIG_FILE
         - PRESEEDED_ISO_FILENAME
     env:
       LOG_LEVEL: DEBUG

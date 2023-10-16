@@ -5,12 +5,12 @@ from utils import Multipass
 if __name__ == "__main__":
     ISO_FILENAME = os.environ["DEBIAN_ISO_FILENAME"]
     ISO_URL = os.environ["DEBIAN_ISO_URL"]
-    FLASH_TARGET_CONFIG_FILE = os.environ["FLASH_TARGET_CONFIG_FILE"]
+    TARGET_CONFIG_FILE = os.environ["TARGET_CONFIG_FILE"]
     PRESEEDED_ISO_FILENAME = os.environ["PRESEEDED_ISO_FILENAME"]
 
     logging.getLogger().setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
-    with Multipass(FLASH_TARGET_CONFIG_FILE) as multipass:
+    with Multipass(TARGET_CONFIG_FILE) as multipass:
         multipass.cmd("apt-get update")
         multipass.cmd("apt-get upgrade -y")
         multipass.cmd("apt-get -y install genisoimage xorriso isolinux udevil")
