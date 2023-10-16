@@ -12,14 +12,12 @@ env:
 
 tasks:
   ensure-pdm:
+    cmd: pdm install
     desc: Ensure the pdm is initiated and a virtual environment is created
     internal: true
-    cmds:
-      - pdm install
-      - $(pdm venv activate)
 
   generate-iso:
-    cmd: python3 main.py
+    cmd: pdm run main.py
     desc: Generate a preseeded Debian ISO
     sources:
       - templates/preseed.cfg.j2
