@@ -2,14 +2,14 @@
 
 # setup authorized key for user root
 mkdir -p /root/.ssh
-echo 'ssh-rsa {{ public_key }}' >> /root/.ssh/authorized_keys
+echo '{{ public_key }}' >> /root/.ssh/authorized_keys
 chown -R root:root /root/.ssh/
 chmod 644 /root/.ssh/authorized_keys
 chmod 700 /root/.ssh/
 
 # setup authorized key for user {{ user.name }}
 mkdir -p /home/{{ user.name }}/.ssh
-echo 'ssh-rsa {{ public_key }}' >> /home/{{ user.name }}/.ssh/authorized_keys
+echo '{{ public_key }}' >> /home/{{ user.name }}/.ssh/authorized_keys
 chown -R {{ user.name }}:{{ user.name }} /home/{{ user.name }}/.ssh/
 chmod 644 /home/{{ user.name }}/.ssh/authorized_keys
 chmod 700 /home/{{ user.name }}/.ssh/
