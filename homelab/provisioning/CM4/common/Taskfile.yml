@@ -13,13 +13,11 @@ tasks:
 
   setup-kubectl:
     desc: Download kubeconfig file from the cluster to .kube and set kubectl context
+    summary: |
+      Download kubeconfig file from the cluster to .kube and set kubectl context
+      any depending tasks should set env var KUBECONFIG=${PWD}/.kube/config
+    status:
+      - "[ -f .kube/config ]"
     generates:
       - .kube/config
-    cmds:
-      - cmd: rm -rf .kube
-        ignore_error: true
-      - scp -i master.pem -r pi@master.local:~/.kube .kube
-      - cmd: echo "You need to export the new kubeconfig file now:"
-        silent: true
-      - cmd: echo "export KUBECONFIG=${PWD}/.kube/config"
-        silent: true
+    cmd: scp -i master.pem -r pi@master.local:~/.kube .kube
