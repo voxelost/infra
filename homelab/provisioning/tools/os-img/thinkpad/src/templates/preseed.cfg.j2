@@ -12,7 +12,7 @@ d-i keyboard-configuration/xkb-keymap select us
 d-i netcfg/use_autoconfig boolean true
 d-i netcfg/choose_interface select enp0s25
 
-d-i netcfg/get_hostname string hostname
+d-i netcfg/get_hostname string {{ hostname }}
 d-i netcfg/get_domain string local
 
 d-i hw-detect/load_firmware boolean false
@@ -27,8 +27,8 @@ d-i hw-detect/load_firmware boolean false
 #   .
 #   This password is used only by the Debian installer, and will be
 #   discarded once you finish the installation.
-d-i network-console/password password testpasswd
-d-i network-console/password-again password testpasswd
+d-i network-console/password password 0x0D15EA5E
+d-i network-console/password-again password 0x0D15EA5E
 
 # Setup network console
 d-i preseed/early_command string anna-install network-console
@@ -37,14 +37,14 @@ d-i network-console/start select continue
 # disable login with password:
 d-i network-console/password-disabled boolean true
 
-d-i passwd/root-password password root
-d-i passwd/root-password-again password root
+d-i passwd/root-password password {{ root_password }}
+d-i passwd/root-password-again password {{ root_password }}
 
 d-i passwd/make-user boolean true
-d-i passwd/user-fullname string username
-d-i passwd/username string username
-d-i passwd/user-password password root
-d-i passwd/user-password-again password root
+d-i passwd/user-fullname string {{ user.name }}
+d-i passwd/username string {{ user.name }}
+d-i passwd/user-password password {{ user.password }}
+d-i passwd/user-password-again password {{ user.password }}
 d-i passwd/root-login boolean true
 
 di grub-installer/choose_bootdev string /dev/sda
@@ -63,7 +63,7 @@ popularity-contest popularity-contest/participate boolean false
 
 # Individual additional packages to install
 d-i pkgsel/run_tasksel boolean false
-d-i pkgsel/include string openssh-server avahi-daemon sudo build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev python3
+d-i pkgsel/include string openssh-server avahi-daemon sudo build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev python3 {{ additional_packages|join(" ") }}
 d-i pkgsel/upgrade select full-upgrade
 
 d-i partman-auto/disk string /dev/sda
@@ -73,7 +73,6 @@ d-i partman-auto/method string regular
 # # group. It can either be a size with its unit (eg. 20 GB), a percentage of
 # # free space or the 'max' keyword.
 d-i partman-auto-lvm/guided_size string max
-
 d-i partman-auto/choose_recipe select atomic
 
 d-i partman-partitioning/confirm_write_new_label boolean true
@@ -85,7 +84,7 @@ d-i preseed/late_command string \
     cp -a /setup.sh /target/root; \
     in-target /bin/sh -c "chmod 777 /root/setup.sh"; \
     in-target /bin/sh /root/setup.sh; \
-    in-target /bin/sh -c "rm /setup.sh";
+    in-target /bin/sh -c "rm /root/setup.sh";
 
 # Automatically reboot post-installation
 d-i finish-install/reboot_in_progress note

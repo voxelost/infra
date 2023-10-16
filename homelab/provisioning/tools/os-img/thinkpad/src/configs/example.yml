@@ -1,0 +1,10 @@
+
+---
+hostname: hostname
+root_password: root_passwd
+user:
+  name: user
+  password: user_passwd
+public_key: ""
+additional_packages: []
+additional_setup_steps: []
