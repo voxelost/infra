@@ -1,5 +1,6 @@
 *.iso
 .cache
 .env
-resources/
+resources/*
+resources/!example.*
 out
