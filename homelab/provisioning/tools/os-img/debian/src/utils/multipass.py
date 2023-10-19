@@ -8,20 +8,25 @@ import tempfile
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from functools import cached_property
+from utils.vm import VM
 
 
 class MultipassException(Exception):
     ...
 
 
-class Multipass:
+class Multipass(VM):
     _workdir = "/home/ubuntu/downloads"
     _templates_path = "templates"
 
     def __init__(
-        self, flash_target_config_file: str, cpus: int = 4, memory: str = "8G"
+        self,
+        flash_target_config_file: str,
+        auth: str,
+        cpus: int = 4,
+        memory: str = "8G",
     ):
-        self._authenticate()
+        self._authenticate(auth)
 
         self.flash_target_config_file = flash_target_config_file
         self._machine_name = f"geniso-{uuid.uuid4()}"
@@ -30,7 +35,8 @@ class Multipass:
         self.cmd(f"mkdir -p {self._workdir}", become=False, cwd=None)
 
     def __enter__(self):
-        _ = self._tempdir  # ensure temp dir is created
+        logging.debug(f"Creating temporary directory {self._tempdir}")
+        _ = self._tempdir
         return self
 
     def __exit__(self, reason: typing.Optional[Exception], traceback, *args):
@@ -50,18 +56,12 @@ class Multipass:
         logging.debug(f"Destroying VM {self._machine_name}")
         self._shell_cmd(f"multipass delete {self._machine_name}")
 
-    def _authenticate(self):
-        _auth = os.getenv("MULTIPASS_AUTH")
-        if _auth is None:
-            logging.error(
-                "Env var MULTIPASS_AUTH needs to be set to authenticate multipass"
-            )
-
+    def _authenticate(self, auth: str):
         logging.info(
             "Authenticating multipass. You may need to input the sudo password now"
         )
         self._shell_cmd(
-            f"sudo multipass authenticate {_auth}",
+            f"sudo multipass authenticate {auth}",
         )
 
     def _build_command(
@@ -125,7 +125,6 @@ class Multipass:
     @cached_property
     def _tempdir(self) -> str:
         tempdir = tempfile.mkdtemp()
-        logging.debug(f"Created temporary directory {tempdir}")
         return tempdir
 
     @cached_property
