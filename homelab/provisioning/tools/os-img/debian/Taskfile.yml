@@ -1,14 +1,15 @@
 version: '3'
 
-env:
-  DEBIAN_CURRENT: "TRUE"
+vars:
+  DEBIAN_NEWEST: "TRUE"
   DEBIAN_ISO_VERSION: 12.2.0 # 11.7.0
   TARGET_CONFIG: nuc
-  DEBIAN_CD_SOURCE: '{{if eq .DEBIAN_CURRENT "TRUE"}}debian-cd{{else}}cdimage/archive{{end}}'
+  DEBIAN_CD_SOURCE: '{{if eq .DEBIAN_NEWEST "TRUE"}}debian-cd{{else}}cdimage/archive{{end}}'
   DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
   DEBIAN_ISO_URL: https://cdimage.debian.org/{{.DEBIAN_CD_SOURCE}}/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
   TARGET_CONFIG_FILE: configs/{{.TARGET_CONFIG}}.yml
   PRESEEDED_ISO_FILENAME: preseeded-{{.TARGET_CONFIG}}-{{.DEBIAN_ISO_FILENAME}}
+  MULTIPASS_AUTH: totoro
 
 tasks:
   ensure-pdm:
@@ -17,7 +18,7 @@ tasks:
     internal: true
 
   generate-iso:
-    cmd: pdm run main.py
+    cmd: pdm run main.py --iso-filename {{.DEBIAN_ISO_FILENAME}} --iso-url {{.DEBIAN_ISO_URL}} --target-config-file {{.TARGET_CONFIG_FILE}} --target-iso-filename {{.PRESEEDED_ISO_FILENAME}} --multipass-auth {{.MULTIPASS_AUTH}}
     desc: Generate a preseeded Debian ISO
     sources:
       - templates/preseed.cfg.j2
