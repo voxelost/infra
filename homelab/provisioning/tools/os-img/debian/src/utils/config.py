@@ -10,11 +10,13 @@ class Config(dict):
         default_config_file: os.PathLike = "configs/defaults.yml",
         commons_config_file: os.PathLike = "configs/commons.yml",
     ):
-        with open(default_config_file, "r") as fptr:
-            self.update(yaml.safe_load(fptr))
+        if os.path.exists(default_config_file):
+            with open(default_config_file, "r") as fptr:
+                self.update(yaml.safe_load(fptr))
 
-        with open(commons_config_file, "r") as fptr:
-            self.update(yaml.safe_load(fptr))
+        if os.path.exists(commons_config_file):
+            with open(commons_config_file, "r") as fptr:
+                self.update(yaml.safe_load(fptr))
 
         with open(config_file, "r") as fptr:
             self.update(yaml.safe_load(fptr))
