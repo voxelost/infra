@@ -20,6 +20,7 @@ tasks:
   generate-iso:
     cmd: pdm run main.py --iso-filename {{.DEBIAN_ISO_FILENAME}} --iso-url {{.DEBIAN_ISO_URL}} --target-config-file {{.TARGET_CONFIG_FILE}} --target-iso-filename {{.PRESEEDED_ISO_FILENAME}} --multipass-auth {{.MULTIPASS_AUTH}}
     desc: Generate a preseeded Debian ISO
+    interactive: true
     sources:
       - templates/preseed.cfg.j2
       - templates/setup.sh.j2
