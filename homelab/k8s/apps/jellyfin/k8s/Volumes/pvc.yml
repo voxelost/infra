@@ -2,7 +2,6 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: bazarr-config
   name: bazarr-config
@@ -11,15 +10,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: jellyfin-config
   name: jellyfin-config
@@ -28,15 +25,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: jellyseer-config
   name: jellyseer-config
@@ -45,15 +40,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: radarr-config
   name: radarr-config
@@ -62,15 +55,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: prowlarr-config
   name: prowlarr-config
@@ -79,15 +70,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: sonarr-config
   name: sonarr-config
@@ -96,8 +85,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 # media
@@ -105,7 +93,6 @@ status: {}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: radarr-movies
   name: radarr-movies
@@ -114,15 +101,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: sonarr-tvseries
   name: sonarr-tvseries
@@ -131,8 +116,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 # cache
@@ -140,7 +124,6 @@ status: {}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: jellyfin-cache
   name: jellyfin-cache
@@ -149,15 +132,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: qbittorrent-downloads
   name: qbittorrent-downloads
@@ -166,15 +147,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
     io.kompose.service: prometheus-cache
   name: prometheus-cache
@@ -183,6 +162,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi # local-path doesn't implement volume size limits
-  # storageClassName: local-path
+      storage: 100Mi
 status: {}
