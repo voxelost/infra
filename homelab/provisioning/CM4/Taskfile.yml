@@ -33,8 +33,6 @@ tasks:
     desc: Run rpiboot
     deps:
       - ensure-rpiboot
-    sources:
-      - usbboot/rpiboot
 
   clean:
     cmd: rm -rf usbboot
