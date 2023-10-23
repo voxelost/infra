@@ -9,6 +9,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from functools import cached_property
 from utils.vm import VM
+from utils.config import Config
 
 
 class MultipassException(Exception):
@@ -16,7 +17,7 @@ class MultipassException(Exception):
 
 
 class Multipass(VM):
-    _workdir = "/home/ubuntu/downloads"
+    _workdir = "/home/ubuntu/workspace"
     _templates_path = "templates"
 
     def __init__(
@@ -25,13 +26,13 @@ class Multipass(VM):
         auth: str,
         cpus: int = 4,
         memory: str = "8G",
+        disk: str = "5G",
     ):
         self._authenticate(auth)
 
-        self.flash_target_config_file = flash_target_config_file
+        self.config = Config(flash_target_config_file)
         self._machine_name = f"geniso-{uuid.uuid4()}"
-        self._provision_vm(cpus, memory)
-
+        self._provision_vm(cpus, memory, disk)
         self.cmd(f"mkdir -p {self._workdir}", become=False, cwd=None)
 
     def __enter__(self):
@@ -46,14 +47,19 @@ class Multipass(VM):
 
         self._destroy_vm()
 
-    def _provision_vm(self, cpus: int = 4, memory: str = "8G") -> None:
-        logging.debug(f"Provisioning VM {self._machine_name}")
+    def _provision_vm(
+        self, cpus: int = 4, memory: str = "8G", disk: str = "5G"
+    ) -> None:
+        _machine_stats = {"cpus": cpus, "memory": memory, "disk": disk}
+        logging.debug(f"Provisioning VM {self._machine_name}: {_machine_stats}")
+
         self._shell_cmd(
-            f"multipass launch --name {self._machine_name} --cpus {cpus} --memory {memory}"
+            f"multipass launch --name {self._machine_name} --cpus {cpus} --memory {memory} --disk {disk}"
         )
 
     def _destroy_vm(self) -> None:
         logging.debug(f"Destroying VM {self._machine_name}")
+        self._shell_cmd(f"multipass stop {self._machine_name}")
         self._shell_cmd(f"multipass delete {self._machine_name}")
 
     def _authenticate(self, auth: str):
@@ -87,22 +93,28 @@ class Multipass(VM):
 
         return f"multipass exec {_workdir} {self._machine_name} -- {_cmd}"
 
-    def _shell_cmd(self, cmd: str, stdin: str = "") -> str:
-        proc = subprocess.Popen(
-            cmd,
-            shell=True,
-            text=True,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+    def _shell_cmd(self, cmd: str, stdin: str = "", pipe: bool = True) -> str:
+        filehandles = {
+            "stdin": subprocess.PIPE,
+            "stdout": subprocess.PIPE,
+            "stderr": subprocess.PIPE,
+        }
 
-        stdout, stderr = proc.communicate(stdin)
+        popen_kwargs = {"shell": True, "text": True}
 
-        if proc.returncode != 0:
-            raise MultipassException(stderr)
+        if pipe:
+            popen_kwargs.update(filehandles)
 
-        return stdout.strip()
+        proc = subprocess.Popen(cmd, **popen_kwargs)
+
+        if pipe:
+            stdout, stderr = proc.communicate(stdin)
+            if proc.returncode != 0:
+                raise MultipassException(stderr)
+
+            return stdout.strip()
+        else:
+            proc.communicate()
 
     def _send_command(
         self,
@@ -110,9 +122,10 @@ class Multipass(VM):
         become: bool = True,
         cwd: typing.Optional[str] = _workdir,
         stdin: str = "",
+        pipe: bool = True,
     ) -> str:
         logging.debug(f"Running command: {command}")
-        return self._shell_cmd(self._build_command(command, become, cwd), stdin)
+        return self._shell_cmd(self._build_command(command, become, cwd), stdin, pipe)
 
     def _transfer(self, src: str, dest: str) -> str:
         return self._shell_cmd(f"sudo multipass transfer {src} {dest}")
@@ -126,11 +139,6 @@ class Multipass(VM):
     def _tempdir(self) -> str:
         tempdir = tempfile.mkdtemp()
         return tempdir
-
-    @cached_property
-    def _preseed_config(self) -> dict:
-        with open(self.flash_target_config_file, "r") as fptr:
-            return yaml.safe_load(fptr)
 
     def upload(self, src: str, dest: str = ".") -> str:
         if not dest.startswith("/"):
@@ -159,7 +167,7 @@ class Multipass(VM):
         preseed_rendered_fname = os.path.join(self._tempdir, dest_fname)
         with open(preseed_rendered_fname, "w") as fptr:
             _template = self._jinja_env.get_template(template_name)
-            fptr.write(_template.render(self._preseed_config))
+            fptr.write(_template.render(self.config))
 
         return self.upload(preseed_rendered_fname, dest_fname)
 
@@ -169,5 +177,13 @@ class Multipass(VM):
         become: bool = True,
         cwd: typing.Optional[str] = _workdir,
         stdin: str = "",
+        pipe: bool = True,
     ) -> str:
-        return self._send_command(command, become, cwd, stdin)
+        return self._send_command(command, become, cwd, stdin, pipe)
+
+    def write_file(self, dest: str, file_contents: str) -> str:
+        _local_filename = os.path.join(self._tempdir, os.path.basename(dest))
+        with open(_local_filename, "w") as fptr:
+            fptr.write(file_contents)
+
+        return self.upload(_local_filename, dest)
