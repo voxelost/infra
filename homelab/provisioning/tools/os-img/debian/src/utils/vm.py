@@ -31,5 +31,6 @@ class VM:
         become: bool = True,
         cwd: typing.Optional[str] = _workdir,
         stdin: str = "",
+        pipe: bool = True,
     ) -> str:
         ...
