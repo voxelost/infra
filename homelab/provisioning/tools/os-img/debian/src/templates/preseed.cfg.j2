@@ -63,7 +63,7 @@ popularity-contest popularity-contest/participate boolean false
 
 # Individual additional packages to install
 d-i pkgsel/run_tasksel boolean false
-d-i pkgsel/include string openssh-server avahi-daemon sudo build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev python3 {{ additional_packages|join(" ") }}
+d-i pkgsel/include string {{ apt_packages|join(" ") }} {{ additional_packages|join(" ") }}
 d-i pkgsel/upgrade select full-upgrade
 
 d-i partman-auto/disk string /dev/sda
