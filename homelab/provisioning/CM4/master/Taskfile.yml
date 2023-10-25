@@ -1,7 +1,0 @@
-version: '3'
-
-tasks:
-  provision:
-    desc: Provision the cluster
-    cmds:
-      - ansible-playbook setup.yml -i inventory/cluster/hosts.ini
