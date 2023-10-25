@@ -1,5 +1,8 @@
 version: '3'
 
+env:
+  KUBECONFIG: '{{.USER_WORKING_DIR}}/.kube/config'
+
 includes:
   ddns:
     taskfile: ./apps/ddns/
@@ -24,37 +27,39 @@ includes:
 tasks:
   setup-kubectl:
     internal: true
-    desc: Pull kubeconfig file and set KUBECONFIG var
+    desc: Pull kubeconfig file
     deps:
       - task: cm4-provisioning:setup-kubectl
     cmds:
       - cp -r ../provisioning/CM4/common/.kube .
-      - export KUBECONFIG=${PWD}/.kube/config
 
   ensure-ganesha-provisioner:
     status:
       - '[ $(helm list --filter="ganesha-nfs-stable" | wc -l) -gt 1 ]'
+    deps:
+      - task: setup-kubectl
+
     cmds:
+      - cmd: echo ${KUBECONFIG}
       - helm repo add nfs-ganesha-server-and-external-provisioner https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/
       - cmd: >
           helm install ganesha-nfs-stable nfs-ganesha-server-and-external-provisioner/nfs-server-provisioner
           --set=storageClass.defaultClass=true,storageClass.reclaimPolicy=Retain
+      - "kubectl patch storageclass local-path -p \'{\"metadata\": {\"annotations\":{\"storageclass.kubernetes.io/is-default-class\":\"false\"}}}'"
 
   kubectl:apply:
     desc: Deploy applications to the Kubernetes cluster (all under ./apps by default)
     summary: |
       Deploy applications to the Kubernetes cluster (all under ./apps by default)
       if any apps are passed as CLI arguments, those will be deployed instead
-    deps:
-      - task: setup-kubectl
-        silent: true
-      - task: ensure-ganesha-provisioner
     vars:
       _ALL_APPS:
         sh: cd apps && find . -type dir -d 1 -exec basename {} \;
       _DEFAULT_APPS: '{{catLines ._ALL_APPS}}'
-      _TO_APPLY: '{{or .CLI_ARGS ._DEFAULT_APPS}}'
+      _TO_APPLY: '{{default ._DEFAULT_APPS .CLI_ARGS}}'
     cmds:
+      - cmd: echo ${KUBECONFIG}
+      - task: ensure-ganesha-provisioner
       - cmd: echo
       - task: "{{.ITEM}}:kubectl:apply"
         for:
@@ -67,14 +72,13 @@ tasks:
       if any apps are passed as CLI arguments, those will be deleted instead
     deps:
       - task: setup-kubectl
-        silent: true
-      - task: ensure-ganesha-provisioner
     vars:
       _ALL_APPS:
         sh: cd apps && find . -type dir -d 1 -exec basename {} \;
       _DEFAULT_APPS: '{{catLines ._ALL_APPS}}'
-      _TO_DELETE: '{{or .CLI_ARGS ._DEFAULT_APPS}}'
+      _TO_DELETE: '{{default ._DEFAULT_APPS .CLI_ARGS}}'
     cmds:
+      - task: ensure-ganesha-provisioner
       - task: "{{.ITEM}}:kubectl:delete"
         for:
           var: _TO_DELETE

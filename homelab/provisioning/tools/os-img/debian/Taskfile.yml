@@ -48,7 +48,7 @@ tasks:
     preconditions:
       - "[ -d src/.out ]"
     vars:
-      MEDIA_DEVICE: '{{or .MEDIA_DEVICE "/dev/disk4"}}'
+      MEDIA_DEVICE: '{{default "/dev/disk4" .MEDIA_DEVICE}}'
     requires:
       vars:
         - PRESEEDED_ISO_FILENAME
