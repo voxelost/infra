@@ -38,3 +38,24 @@ tasks:
     cmd: rm -rf usbboot
     desc: Cleanup raspberrypi/usbboot from local path
     ignore_error: true
+
+  reset:
+    desc: Reset the cluster to a clean state
+    cmds:
+      - ansible-playbook reset.yml -i inventory/cluster/hosts.ini
+
+  provision:
+    desc: Provision the cluster
+    cmds:
+      - ansible-playbook setup.yml -i inventory/cluster/hosts.ini
+
+  setup-kubectl:
+    desc: Download kubeconfig file from the cluster to .kube and set kubectl context
+    summary: |
+      Download kubeconfig file from the cluster to .kube and set kubectl context
+      any depending tasks should set env var KUBECONFIG=${PWD}/.kube/config
+    status:
+      - "[ -f .kube/config ]"
+    generates:
+      - .kube/config
+    cmd: scp -i master.pem -r pi@master.local:~/.kube .kube
