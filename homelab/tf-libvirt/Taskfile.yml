@@ -1,0 +1,29 @@
+version: '3'
+
+vars:
+  TF: terraform # tofu
+  VM_HOST_ADDRESS: nuc.local
+
+tasks:
+  clear-vms:
+    internal: true
+    cmd: ssh -i nuc.pem root@{{.VM_HOST_ADDRESS}} -- "source /home/debian/workspace/infra/homelab/tf-libvirt/resources/virsh.undefine.all.sh"
+
+  clear-storage-pool:
+    internal: true
+    cmds:
+      - ssh -i nuc.pem root@{{.VM_HOST_ADDRESS}} -- "virsh pool-destroy local-cluster"
+      - ssh -i nuc.pem root@{{.VM_HOST_ADDRESS}} -- "virsh pool-undefine local-cluster"
+
+  clean:
+    deps:
+      - task: clear-vms
+      - task: clear-storage-pool
+
+  tfinit:
+    cmd: '{{.TF}} init'
+
+  tfapply:
+    interactive: true
+    cmd: '{{.TF}} apply'
+
