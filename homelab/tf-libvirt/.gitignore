@@ -1,9 +1,0 @@
-# terraform
-.idea/
-.infracost/
-.terraform/
-generated/
-*.tfstate*
-
-# secrets
-keys/
