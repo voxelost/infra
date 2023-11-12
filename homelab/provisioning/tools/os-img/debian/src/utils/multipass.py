@@ -94,16 +94,16 @@ class Multipass(VM):
         return f"multipass exec {_workdir} {self._machine_name} -- {_cmd}"
 
     def _shell_cmd(self, cmd: str, stdin: str = "", pipe: bool = True) -> str:
-        filehandles = {
-            "stdin": subprocess.PIPE,
-            "stdout": subprocess.PIPE,
-            "stderr": subprocess.PIPE,
-        }
-
         popen_kwargs = {"shell": True, "text": True}
 
         if pipe:
-            popen_kwargs.update(filehandles)
+            popen_kwargs.update(
+                {
+                    "stdin": subprocess.PIPE,
+                    "stdout": subprocess.PIPE,
+                    "stderr": subprocess.PIPE,
+                }
+            )
 
         proc = subprocess.Popen(cmd, **popen_kwargs)
 
