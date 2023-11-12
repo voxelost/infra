@@ -4,12 +4,8 @@ vars:
   DEBIAN_NEWEST: "TRUE"
   DEBIAN_ISO_VERSION: 12.2.0 # 11.7.0
   TARGET_CONFIG: nuc
-  DEBIAN_CD_SOURCE: '{{if eq .DEBIAN_NEWEST "TRUE"}}debian-cd{{else}}cdimage/archive{{end}}'
-  DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
-  DEBIAN_ISO_URL: https://cdimage.debian.org/{{.DEBIAN_CD_SOURCE}}/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
-  TARGET_CONFIG_FILE: configs/{{.TARGET_CONFIG}}.yml
-  PRESEEDED_ISO_FILENAME: preseeded-{{.TARGET_CONFIG}}-{{.DEBIAN_ISO_FILENAME}}
   MULTIPASS_AUTH: totoro
+  PRESEEDED_ISO_FILENAME: preseeded-{{.TARGET_CONFIG}}-{{.DEBIAN_ISO_FILENAME}}
 
 tasks:
   ensure-pdm:
@@ -29,10 +25,12 @@ tasks:
       - .out/{{.PRESEEDED_ISO_FILENAME}}
     requires:
       vars:
-        - DEBIAN_ISO_FILENAME
-        - DEBIAN_ISO_URL
-        - TARGET_CONFIG_FILE
         - PRESEEDED_ISO_FILENAME
+    vars:
+      DEBIAN_CD_SOURCE: '{{if eq .DEBIAN_NEWEST "TRUE"}}debian-cd{{else}}cdimage/archive{{end}}'
+      DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
+      DEBIAN_ISO_URL: https://cdimage.debian.org/{{.DEBIAN_CD_SOURCE}}/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
+      TARGET_CONFIG_FILE: configs/{{.TARGET_CONFIG}}.yml
     env:
       LOG_LEVEL: DEBUG
     dir: src
