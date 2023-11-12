@@ -1,0 +1,499 @@
+from dataclasses import field, dataclass
+from xml_dataclasses import xml_dataclass, rename, text, dump
+from lxml import etree
+from typing import List, Optional
+
+
+LIBOS_METADATA_NS = "http://libosinfo.org/xmlns/libvirt/domain/1.0"
+@xml_dataclass
+@dataclass
+class Address:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    domain: Optional[str] = field(default=None)
+    bus: Optional[str] = field(default=None)
+    slot: Optional[str] = field(default=None)
+    function: Optional[str] = field(default=None)
+    controller: Optional[str] = field(default=None)
+    target: Optional[str] = field(default=None)
+    unit: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Alias:
+    __ns__ = None
+
+    name: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Audio:
+    __ns__ = None
+
+    id: Optional[str] = field(default=None)
+    type_value: Optional[str] = rename(field(default=None), name='type')
+
+@xml_dataclass
+@dataclass
+class Backend:
+    __ns__ = None
+
+    model: Optional[str] = field(default=None)
+    value: str = text(field(
+        default="",
+    ))
+
+@xml_dataclass
+@dataclass
+class Boot:
+    __ns__ = None
+
+    dev: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Cpu:
+    __ns__ = None
+
+    mode: Optional[str] = field(default=None)
+    check: Optional[str] = field(default=None)
+    migratable: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Driver:
+    __ns__ = None
+
+    name: Optional[str] = field(default=None)
+    type_value: Optional[str] = rename(field(default=None), name='type')
+
+@xml_dataclass
+@dataclass
+class Image:
+    __ns__ = None
+
+    compression: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Listen:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    address: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Mac:
+    __ns__ = None
+
+    address: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Memory:
+    __ns__ = None
+
+    unit: Optional[str] = field(default=None)
+    value: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
+class Model:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    heads: Optional[str] = field(default=None)
+    primary: Optional[str] = field(default=None)
+    name: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class ResourcePartition:
+    __ns__ = None
+
+    partition: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
+class Resource:
+    __ns__ = None
+
+    partition: Optional[ResourcePartition] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class SeclabelLabel:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+@xml_dataclass
+@dataclass
+class SeclabelImageLabel:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+@xml_dataclass
+@dataclass
+class Seclabel:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    model: Optional[str] = field(default=None)
+    relabel: Optional[str] = field(default=None)
+    label: Optional[SeclabelLabel] = field(default=None)
+    imagelabel: Optional[SeclabelImageLabel] = field(default=None)
+@xml_dataclass
+@dataclass
+class Source:
+    __ns__ = None
+
+    network: Optional[str] = field(default=None)
+    portid: Optional[str] = field(default=None)
+    bridge: Optional[str] = field(default=None)
+    file: Optional[str] = field(default=None)
+    index: Optional[str] = field(default=None)
+    path: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class SuspendToDisk:
+    __ns__ = None
+
+    enabled: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class SuspendToMem:
+    __ns__ = None
+
+    enabled: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Timer:
+    __ns__ = None
+
+    name: Optional[str] = field(default=None)
+    present: Optional[str] = field(default=None)
+    tickpolicy: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class TypeType:
+    __ns__ = None
+
+    arch: Optional[str] = field(default=None)
+    machine: Optional[str] = field(default=None)
+    value: str = text(field(
+        default="",
+    ))
+
+@xml_dataclass
+@dataclass
+class Vcpu:
+    __ns__ = None
+
+    placement: Optional[str] = field(default=None)
+    value: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
+class Vmport:
+    __ns__ = None
+
+    state: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Os2:
+    __ns__ = LIBOS_METADATA_NS
+
+    id: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Clock:
+    __ns__ = None
+
+    offset: Optional[str] = field(default=None)
+    timer: List[Timer] = field(
+        default_factory=list,
+    )
+@xml_dataclass
+@dataclass
+class Acpi:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+@xml_dataclass
+@dataclass
+class Apic:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+@xml_dataclass
+@dataclass
+class Features:
+    __ns__ = None
+
+    acpi: Optional[Acpi] = field(default=None)
+    apic: Optional[Apic] = field(default=None)
+    vmport: Optional[Vmport] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Graphics:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    port: Optional[str] = field(default=None)
+    autoport: Optional[str] = field(default=None)
+    listen_attribute: Optional[str] = rename(field(default=None), name='listen')
+    listen: Optional[Listen] = field(default=None)
+    image: Optional[Image] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Memballoon:
+    __ns__ = None
+
+    model: Optional[str] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+    address: Optional[Address] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Os1:
+    __ns__ = None
+
+    type_value: Optional[TypeType] = rename(field(default=None), name='type')
+    boot: Optional[Boot] = field(default=None)
+
+
+@xml_dataclass
+@dataclass
+class Pm:
+    __ns__ = None
+
+    suspend_to_mem: Optional[SuspendToMem] = rename(field(default=None), name='suspend-to-mem')
+    suspend_to_disk: Optional[SuspendToDisk] = rename(field(default=None), name='suspend-to-disk')
+
+@xml_dataclass
+@dataclass
+class Rng:
+    __ns__ = None
+
+    model: Optional[str] = field(default=None)
+    backend: Optional[Backend] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+    address: Optional[Address] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Sound:
+    __ns__ = None
+
+    model: Optional[str] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+    address: Optional[Address] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Target:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    port: Optional[str] = field(default=None)
+    model: Optional[Model] = field(default=None)
+    dev: Optional[str] = field(default=None)
+    bus: Optional[str] = field(default=None)
+    name: Optional[str] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Video:
+    __ns__ = None
+
+    model: Optional[Model] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+    address: Optional[Address] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Libosinfo:
+    __ns__ = LIBOS_METADATA_NS
+    __nsmap__ = {
+        'libosinfo': LIBOS_METADATA_NS
+    }
+
+    os: Optional[Os2] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Console:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    tty: Optional[str] = field(default=None)
+    source: Optional[Source] = field(default=None)
+    target: Optional[Target] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+
+
+@xml_dataclass
+@dataclass
+class BackingStore:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+
+
+@xml_dataclass
+@dataclass
+class ReadOnly:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+
+
+@xml_dataclass
+@dataclass
+class Disk:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    device: Optional[str] = field(default=None)
+    driver: Optional[Driver] = field(default=None)
+    source: Optional[Source] = field(default=None)
+    backing_store: Optional[BackingStore] = rename(field(default=None), name='backingStore')
+    readonly: Optional[ReadOnly] = field(default=None)
+    target: Optional[Target] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+    address: Optional[Address] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Interface:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    mac: Optional[Mac] = field(default=None)
+    source: Optional[Source] = field(default=None)
+    target: Optional[Target] = field(default=None)
+    model: Optional[Model] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+    address: Optional[Address] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Metadata:
+    __ns__ = None
+
+    libosinfo: Optional[Libosinfo] = field(default=None)
+
+    # TODO: add application specific metadata
+
+@xml_dataclass
+@dataclass
+class Serial:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    source: Optional[Source] = field(default=None)
+    target: Optional[Target] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Emulator:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
+class Channel:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    target: Optional[Target] = field(default=None)
+
+
+@xml_dataclass
+@dataclass
+class Devices:
+    __ns__ = None
+
+    emulator: Optional[Emulator] = field(default=None)
+    disks: List[Disk] = rename(field(default=None), name='disk')
+    interface: Optional[Interface] = field(default=None)
+    serial: Optional[Serial] = field(default=None)
+    console: Optional[Console] = field(default=None)
+    graphics: Optional[Graphics] = field(default=None)
+    sound: Optional[Sound] = field(default=None)
+    audio: Optional[Audio] = field(default=None)
+    video: Optional[Video] = field(default=None)
+    memballoon: Optional[Memballoon] = field(default=None)
+    rng: Optional[Rng] = field(default=None)
+    channel: Optional[Channel] = field(default=None)
+
+
+@xml_dataclass
+@dataclass
+class OnPoweroff:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
+class OnReboot:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
+class OnCrash:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
+class DomainName:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
+class Domain:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    id: Optional[str] = field(default=None)
+    name: Optional[DomainName] = field(default=None)
+    metadata: Optional[Metadata] = field(default=None)
+    memory: Optional[Memory] = field(default=None)
+    vcpu: Optional[Vcpu] = field(default=None)
+    resource: Optional[Resource] = field(default=None)
+    os: Optional[Os1] = field(default=None)
+    features: Optional[Features] = field(default=None)
+    cpu: Optional[Cpu] = field(default=None)
+    clock: Optional[Clock] = field(default=None)
+    on_poweroff: Optional[OnPoweroff] = field(default=None)
+    on_reboot: Optional[OnReboot] = field(default=None)
+    on_crash: Optional[OnCrash] = field(default=None)
+    pm: Optional[Pm] = field(default=None)
+    devices: Optional[Devices] = field(default=None)
+    seclabel: List[Seclabel] = field(default_factory=list)
+
+    def to_xml_string(self, indent=False) -> str:
+        return etree.tostring(
+            dump(self, "domain", {}),
+            encoding="unicode",
+            pretty_print=indent
+        )

@@ -1,0 +1,21 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "Emilia", email = "voxelost@proton.me"},
+]
+dependencies = [
+    "libvirt-python>=9.9.0",
+    "paramiko>=3.3.1",
+    "xml-dataclasses>=0.0.9",
+    "pyyaml>=6.0.1",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "xsdata[cli]>=23.8",
+]
