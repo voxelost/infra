@@ -6,41 +6,16 @@ from utils.default_helpers.default_userdata import get_default_userdata
 from models.cloud_init.metadata import MetaData
 from models.libvirt.domain import *
 
-
-def setup_remote_files(machine_name: str, source_img_file: str):
-    _IMAGE_FLAVOR = 'generic'
-
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.MissingHostKeyPolicy)
-    ssh_client.connect('nuc.local', username='root', pkey=paramiko.PKey.from_path('/Users/voxelost/workspace/devops/infra/homelab/vm-manager/nuc.pem'))
-    ssh_client.exec_command(f'cp /root/workspace/.cache/debby-{_IMAGE_FLAVOR}-11.qcow2 {source_img_file}')
-
-    sftp_client = ssh_client.open_sftp()
-
-    with io.StringIO(get_default_userdata().to_yaml()) as fl:
-        sftp_client.putfo(fl, '/root/workspace/user-data')
-
-    with io.StringIO(MetaData(machine_name, machine_name[:15]).to_yaml()) as fl:
-        sftp_client.putfo(fl, '/root/workspace/meta-data')
-
-    sftp_client.close()
-    ssh_client.exec_command('cd /root/workspace/; genisoimage -output cidata.iso -V cidata -r -J user-data meta-data')
-
 def get_random_mac_address():
     seed = random.randint(0, 16**6)
     hex_num = hex(seed)[2:].zfill(6)
     return "00:00:00:{}{}:{}{}:{}{}".format(*hex_num)
 
 
-def get_default_machine(memory: int = 2097152) -> Domain:
-    # TODO: graphics_port should be assigned dynamically
-    machine_name = f'debby-auto-{uuid.uuid4()!s}'
-    source_img_file = f'/root/workspace/{machine_name}.qcow2'
-    cidata_filepath = '/root/workspace/cidata.iso' # TODO
+def get_default_machine(machine_name: str, source_img_file: str, cidata_filepath: str, memory: int = 2097152) -> LibvirtDomain:
+    # setup_remote_files(machine_name, source_img_file)
 
-    setup_remote_files(machine_name, source_img_file)
-
-    return Domain(
+    return LibvirtDomain(
         'kvm',
         '1',
         DomainName(machine_name),
