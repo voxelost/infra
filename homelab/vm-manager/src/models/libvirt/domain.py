@@ -1,8 +1,8 @@
 from dataclasses import field, dataclass
-from xml_dataclasses import xml_dataclass, rename, text, dump
+from xml_dataclasses import xml_dataclass, rename, text, dump, load, XmlDataclass
 from lxml import etree
-from typing import List, Optional
-
+from typing import List, Optional, Union, IO
+from os import PathLike
 
 LIBOS_METADATA_NS = "http://libosinfo.org/xmlns/libvirt/domain/1.0"
 @xml_dataclass
@@ -18,6 +18,8 @@ class Address:
     controller: Optional[str] = field(default=None)
     target: Optional[str] = field(default=None)
     unit: Optional[str] = field(default=None)
+    port: Optional[str] = field(default=None)
+    multifunction: Optional[str] = field(default=None)
 
 @xml_dataclass
 @dataclass
@@ -100,6 +102,13 @@ class Memory:
 
 @xml_dataclass
 @dataclass
+class Uuid:
+    __ns__ = None
+
+    value: Optional[str] = text(field(default=None))
+
+@xml_dataclass
+@dataclass
 class Model:
     __ns__ = None
 
@@ -155,6 +164,7 @@ class Source:
     file: Optional[str] = field(default=None)
     index: Optional[str] = field(default=None)
     path: Optional[str] = field(default=None)
+    mode: Optional[str] = field(default=None)
 
 @xml_dataclass
 @dataclass
@@ -218,9 +228,7 @@ class Clock:
     __ns__ = None
 
     offset: Optional[str] = field(default=None)
-    timer: List[Timer] = field(
-        default_factory=list,
-    )
+    timer: List[Timer] = field(default_factory=list)
 @xml_dataclass
 @dataclass
 class Acpi:
@@ -310,6 +318,8 @@ class Target:
     dev: Optional[str] = field(default=None)
     bus: Optional[str] = field(default=None)
     name: Optional[str] = field(default=None)
+    state: Optional[str] = field(default=None)
+    chassis: Optional[str] = field(default=None)
 
 @xml_dataclass
 @dataclass
@@ -419,6 +429,33 @@ class Channel:
 
     type_value: Optional[str] = rename(field(default=None), name='type')
     target: Optional[Target] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+    address: Optional[Address] = field(default=None)
+    source: Optional[Source] = field(default=None)
+
+@xml_dataclass
+@dataclass
+class Controller:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    index: Optional[str] = field(default=None)
+    model: Optional[str] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
+    address: Optional[Address] = field(default=None)
+    model_attribute: Optional[str] = rename(field(default=None), name='model')
+    model: Optional[Model] = field(default=None)
+    target: Optional[Target] = field(default=None)
+
+
+@xml_dataclass
+@dataclass
+class Input:
+    __ns__ = None
+
+    type_value: Optional[str] = rename(field(default=None), name='type')
+    bus: Optional[str] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
 
 
 @xml_dataclass
@@ -427,7 +464,7 @@ class Devices:
     __ns__ = None
 
     emulator: Optional[Emulator] = field(default=None)
-    disks: List[Disk] = rename(field(default=None), name='disk')
+    disks: List[Disk] = rename(field(default_factory=list), name='disk')
     interface: Optional[Interface] = field(default=None)
     serial: Optional[Serial] = field(default=None)
     console: Optional[Console] = field(default=None)
@@ -438,6 +475,8 @@ class Devices:
     memballoon: Optional[Memballoon] = field(default=None)
     rng: Optional[Rng] = field(default=None)
     channel: Optional[Channel] = field(default=None)
+    inputs: List[Input] = rename(field(default_factory=list), name='input')
+    controllers: List[Controller] = rename(field(default_factory=list), name='controller')
 
 
 @xml_dataclass
@@ -470,7 +509,7 @@ class DomainName:
 
 @xml_dataclass
 @dataclass
-class Domain:
+class LibvirtDomain(XmlDataclass):
     __ns__ = None
 
     type_value: Optional[str] = rename(field(default=None), name='type')
@@ -490,6 +529,20 @@ class Domain:
     pm: Optional[Pm] = field(default=None)
     devices: Optional[Devices] = field(default=None)
     seclabel: List[Seclabel] = field(default_factory=list)
+    uuid: Optional[Uuid] = field(default=None)
+    current_memory: Optional[Memory] = rename(field(default=None), name='currentMemory')
+
+    @classmethod
+    def from_xml_string(cls, source: str):
+        parser = etree.XMLParser(remove_blank_text=True, remove_comments=True)
+        lxml_el_in = etree.fromstring(source, parser).getroot()
+        return load(LibvirtDomain, lxml_el_in, 'domain')
+
+    @classmethod
+    def from_xml_file(cls, source: Union[PathLike, IO]):
+        parser = etree.XMLParser(remove_blank_text=True, remove_comments=True)
+        lxml_el_in = etree.parse(source, parser).getroot()
+        return load(LibvirtDomain, lxml_el_in, 'domain')
 
     def to_xml_string(self, indent=False) -> str:
         return etree.tostring(
