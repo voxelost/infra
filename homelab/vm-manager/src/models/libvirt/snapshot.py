@@ -30,7 +30,5 @@ class DomainSnapshot:
 
     def to_xml_string(self, indent=False) -> str:
         return etree.tostring(
-            dump(self, "domainsnapshot", {}),
-            encoding="unicode",
-            pretty_print=indent
+            dump(self, "domainsnapshot", {}), encoding="unicode", pretty_print=indent
         )
