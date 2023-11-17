@@ -19,4 +19,5 @@ license = {text = "MIT"}
 [tool.pdm.dev-dependencies]
 dev = [
     "xsdata[cli]>=23.8",
+    "setuptools>=68.2.2",
 ]

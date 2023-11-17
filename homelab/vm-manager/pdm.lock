@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:91c033aa56cd922192fae1714e536291b3cb0e37bae75780f64864b3f0e1542a"
+content_hash = "sha256:da61a816aa32fcd2f14b3a45cad1789240268d0c74a29044e13c1926dbae0735"
 
 [[package]]
 name = "bcrypt"
@@ -358,6 +358,16 @@ files = [
     {file = "PyYAML-6.0.1-cp312-cp312-win32.whl", hash = "sha256:d483d2cdf104e7c9fa60c544d92981f12ad66a457afae824d146093b8c294c54"},
     {file = "PyYAML-6.0.1-cp312-cp312-win_amd64.whl", hash = "sha256:0d3304d8c0adc42be59c5f8a4d9e3d7379e6955ad754aa9d6ab7a398b59dd1df"},
     {file = "PyYAML-6.0.1.tar.gz", hash = "sha256:bfdf460b1736c775f2ba9f6a92bca30bc2095067b8a9d77876d1fad6cc3b4a43"},
+]
+
+[[package]]
+name = "setuptools"
+version = "68.2.2"
+requires_python = ">=3.8"
+summary = "Easily download, build, install, upgrade, and uninstall Python packages"
+files = [
+    {file = "setuptools-68.2.2-py3-none-any.whl", hash = "sha256:b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a"},
+    {file = "setuptools-68.2.2.tar.gz", hash = "sha256:4ac1475276d2f1c48684874089fefcd83bd7162ddaafb81fac866ba0db282a87"},
 ]
 
 [[package]]
