@@ -32,7 +32,7 @@ def destroy_all_vms(conn: libvirt.virConnect = None):
                 print(e)
 
     with connect_ssh("root", "nuc.local") as ssh_client:
-        ssh_client.exec_command("cd /root/workspace/; rm debby-auto-*")
+        ssh_client.exec_command("cd /root/workspace/; rm ./machines/debby-auto-*")
 
 
 def stream_stuff(conn, dom):
@@ -89,3 +89,13 @@ def stderr_redirected(to=os.devnull, stderr=None):
             # NOTE: dup2 makes stderr_fd inheritable unconditionally
             stderr.flush()
             os.dup2(copied.fileno(), stderr_fd)  # $ exec >&copied
+
+
+def get_random_mac_address():
+    # TODO: this raised an `libvirt: Domain Config error : XML error: expected unicast mac address, found multicast '5f:9d:70:a6:67:a6'` exception
+    # TODO: read on mac address types
+
+    # return ':'.join([hex(random.randint(0, 255))[2:].zfill(2) for _ in range(6)])
+    return "00:00:00:{}:{}:{}".format(
+        *[hex(random.randint(0, 255))[2:].zfill(2) for _ in range(3)]
+    )
