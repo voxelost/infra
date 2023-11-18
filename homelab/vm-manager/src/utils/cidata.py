@@ -41,22 +41,14 @@ class CiData:
         )
 
     def build(self):
-        class ProgressData:
-            def __init__(self):
-                self.last_percent = 0.0
-
-        def progress_cb(done: float, total: float, progress_data: ProgressData):
-            percent = "%.2f%%" % (done / total * 100)
-            if percent != progress_data.last_percent:
-                logging.debug(f"writing ISO image: {percent:7}")
-                progress_data.last_percent = percent
+        def progress_cb(done: float, total: float):
+            logging.debug(f"writing ISO image: {don/total:0.2f}")
 
         self._file_object = BytesIO()
 
         self.iso.write_fp(
             self._file_object,
             progress_cb=progress_cb,
-            progress_opaque=ProgressData()
         )
         self.iso.close()
 
