@@ -7,6 +7,7 @@ import uuid
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Dict, IO, Union
+from io import StringIO
 
 import random
 import libvirt
@@ -17,19 +18,9 @@ from models.cloud_init.metadata import MetaData
 from models.cloud_init.userdata import UserData
 from models.libvirt.snapshot import DomainSnapshot, Name, Description
 from utils.dump import stderr_redirected
-from utils.ssh import connect_ssh, connect_sftp, upload_file_path, upload_file_object
+from utils.ssh import connect_ssh, connect_sftp, upload_file_path, upload_file_object, get_nuc_pkey
 from utils.cidata import CiData
 from models.libvirt.domain import *
-
-
-def get_random_mac_address():
-    # TODO: this raised an `libvirt: Domain Config error : XML error: expected unicast mac address, found multicast '5f:9d:70:a6:67:a6'` exception
-    # TODO: read on mac address types
-
-    # return ':'.join([hex(random.randint(0, 255))[2:].zfill(2) for _ in range(6)])
-    return "00:00:00:{}:{}:{}".format(
-        *[hex(random.randint(0, 255))[2:].zfill(2) for _ in range(3)]
-    )
 
 
 class Domain(virDomain):
@@ -52,17 +43,40 @@ class Domain(virDomain):
     def create_default(
         cls, conn: libvirt.virConnect, memory: int = 2097152, vcpus: int = 2
     ):
-        machine_name = f"debby-auto-{uuid.uuid4()!s}"
-        source_img_file = Path(f"/root/workspace/{machine_name}.qcow2").as_posix()
-        cidata_filepath = Path("/root/workspace/cidata.iso").as_posix()
+        machine_uuid = str(uuid.uuid4())
+        machine_name =  machine_uuid  # f"debby-auto-{machine_uuid}"
+        workspace_path = Path('/root/workspace/machines', machine_uuid).as_posix()
+        source_img_file = Path(workspace_path, f"{machine_name}.qcow2").as_posix()
+        cidata_filepath = Path(workspace_path, "cidata.iso").as_posix()
 
         userdata = UserData.create_default()
         metadata = MetaData(machine_name, machine_name[:15])
 
         with connect_ssh("root", "nuc.local") as ssh_client:
             ssh_client.exec_command(
+                f"mkdir -p /root/workspace/machines {workspace_path}"
+            )
+
+            ssh_client.exec_command(
                 f"cp /root/workspace/.cache/debby-generic-11.qcow2 {source_img_file}"
             )
+
+            ssh_client.exec_command(
+                f"cp /root/workspace/.cache/nuc.pem {workspace_path}"
+            )
+
+            with connect_sftp(ssh_client) as stfp_client:
+                debug_data = {
+                    'machine_uuid': machine_uuid,
+                    'machine_name': machine_name,
+                    'source_img_file': source_img_file,
+                    'cidata_filepath': cidata_filepath,
+                    'userdata': userdata.to_yaml(),
+                    'metadata': metadata.to_yaml(),
+                }
+
+                with StringIO(json.dumps(debug_data, indent=2)) as debug_fo:
+                    stfp_client.putfo(debug_fo, Path(workspace_path, 'debug_info.json').as_posix())
 
             with connect_sftp(ssh_client) as stfp_client:
                 ci_data = CiData()
@@ -70,7 +84,7 @@ class Domain(virDomain):
                 ci_data.add_ci_obj(metadata)
                 ci_data.build()
 
-                stfp_client.putfo(ci_data.file_object, "/root/workspace/cidata.iso")
+                stfp_client.putfo(ci_data.file_object, cidata_filepath)
 
         _vd = conn.createXML(
             LibvirtDomain(
@@ -135,7 +149,6 @@ class Domain(virDomain):
                     ],
                     Interface(
                         type="network",
-                        mac=Mac(get_random_mac_address()),
                         source=Source(
                             network="default",
                             portid="bbbd2004-3294-4ecd-a1cc-f43d4f3c26a0",  # should this be unique?
@@ -144,7 +157,7 @@ class Domain(virDomain):
                         target=Target(dev="vnet0"),
                         model=Model(type="virtio"),
                         alias=Alias(name="net0"),
-                        address=Address(
+                        address=Address( # https://stackoverflow.com/questions/49050847/how-is-pci-segmentdomain-related-to-multiple-host-bridgesor-root-bridges/49090341#49090341
                             type="pci",
                             domain="0x0000",
                             bus="0x01",
