@@ -14,10 +14,7 @@ class MetaData(CloudInitObj):
 
     @classmethod
     def create_default(cls):
-        return cls(
-            instance_id="debby",
-            local_hostname="debby",
-        )
+        return cls()
 
     def to_yaml(self) -> str:
         return yaml.safe_dump(asdict(self))
