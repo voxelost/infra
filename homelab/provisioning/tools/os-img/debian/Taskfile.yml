@@ -5,6 +5,7 @@ vars:
   DEBIAN_ISO_VERSION: 12.2.0 # 11.7.0
   TARGET_CONFIG: nuc
   MULTIPASS_AUTH: totoro
+  DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
   PRESEEDED_ISO_FILENAME: preseeded-{{.TARGET_CONFIG}}-{{.DEBIAN_ISO_FILENAME}}
 
 tasks:
@@ -28,7 +29,6 @@ tasks:
         - PRESEEDED_ISO_FILENAME
     vars:
       DEBIAN_CD_SOURCE: '{{if eq .DEBIAN_NEWEST "TRUE"}}debian-cd{{else}}cdimage/archive{{end}}'
-      DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
       DEBIAN_ISO_URL: https://cdimage.debian.org/{{.DEBIAN_CD_SOURCE}}/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
       TARGET_CONFIG_FILE: configs/{{.TARGET_CONFIG}}.yml
     env:
@@ -36,8 +36,6 @@ tasks:
     dir: src
     deps:
       - task: ensure-pdm
-    dotenv:
-      - .env
 
   flash-usb:
     desc: This task assumes A LOT and will be removed at some point
@@ -52,4 +50,5 @@ tasks:
         - PRESEEDED_ISO_FILENAME
     cmds:
       - hdiutil unmount {{.MEDIA_DEVICE}}
+      - diskutil unmountDisk {{.MEDIA_DEVICE}}
       - sudo dd if=src/.out/{{.PRESEEDED_ISO_FILENAME}} of={{.MEDIA_DEVICE}} bs=4M status=progress
