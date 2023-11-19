@@ -42,7 +42,7 @@ class CiData:
 
     def build(self):
         def progress_cb(done: float, total: float):
-            logging.debug(f"writing ISO image: {don/total:0.2f}")
+            logging.debug(f"writing ISO image: {done/total*100:0.2f}")
 
         self._file_object = BytesIO()
 
@@ -50,8 +50,8 @@ class CiData:
             self._file_object,
             progress_cb=progress_cb,
         )
-        self.iso.close()
 
+        self.iso.close()
         self._file_object.seek(0)
 
     @property
