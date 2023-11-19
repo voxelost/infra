@@ -10,15 +10,14 @@ if __name__ == "__main__":
     parser.add_argument("--target-config-file")
     parser.add_argument("--target-iso-filename")
     parser.add_argument("--multipass-auth")
-    # TODO: differentiate between debian and raspbian
+    parser.add_argument('--target-os', default='debian')
     args = parser.parse_args()
 
     logging.getLogger().setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
-    _TARGET_OS = "debian"
-    if _TARGET_OS == "debian":
+    if args.target_os == "debian":
         from builders.debian import build_iso
-    elif _TARGET_OS == "raspbian":
+    elif args.target_os == "raspbian":
         from builders.raspbian import build_iso
 
     build_iso(**args.__dict__)
