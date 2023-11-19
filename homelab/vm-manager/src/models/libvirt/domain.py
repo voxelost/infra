@@ -322,7 +322,7 @@ class Os1:
 
 @xml_dataclass
 @dataclass
-class Pm:
+class PowerManagement:
     __ns__ = None
 
     suspend_to_mem: Optional[SuspendToMem] = rename(
@@ -587,7 +587,9 @@ class LibvirtDomain(XmlDataclass):
     type: Optional[str] = field(default=None)
     id: Optional[str] = field(default=None)
     name: Optional[DomainName] = field(default=None)
+    max_memory: Optional[Memory] = rename(field(default=None), name='maxMemory')
     metadata: Optional[Metadata] = field(default=None)
+    current_memory: Optional[Memory] = rename(field(default=None), name='currentMemory')
     memory: Optional[Memory] = field(default=None)
     vcpu: Optional[Vcpu] = field(default=None)
     resource: Optional[Resource] = field(default=None)
@@ -598,7 +600,7 @@ class LibvirtDomain(XmlDataclass):
     on_poweroff: Optional[OnPoweroff] = field(default=None)
     on_reboot: Optional[OnReboot] = field(default=None)
     on_crash: Optional[OnCrash] = field(default=None)
-    pm: Optional[Pm] = field(default=None)
+    power_management: Optional[PowerManagement] = rename(field(default=None), name='pm')
     devices: Optional[Devices] = field(default=None)
     seclabels: List[Seclabel] = rename(field(default_factory=list), name="seclabel")
     uuid: Optional[Uuid] = field(default=None)
