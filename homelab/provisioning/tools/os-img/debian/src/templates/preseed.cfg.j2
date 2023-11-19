@@ -10,7 +10,7 @@ d-i console-keymaps-at/keymap select us
 d-i keyboard-configuration/xkb-keymap select us
 
 d-i netcfg/use_autoconfig boolean true
-d-i netcfg/choose_interface select enp0s25
+d-i netcfg/choose_interface select {{ network.ethernet_interface_id }}
 
 d-i netcfg/get_hostname string {{ hostname }}
 d-i netcfg/get_domain string local
