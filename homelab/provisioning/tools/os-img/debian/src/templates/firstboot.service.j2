@@ -1,0 +1,12 @@
+[Unit]
+Description=Run firstboot-setup.sh script
+After=local-fs.target
+After=network.target
+
+[Service]
+ExecStart={{ script.firstboot.location }}
+RemainAfterExit=true
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target

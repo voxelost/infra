@@ -1,0 +1,48 @@
+#!/bin/bash
+
+{% if apt_update_packages %}
+    apt-get update
+{% endif %}
+
+{% if apt_upgrade_packages %}
+    apt-get -y upgrade
+{% endif %}
+
+sysctl -w vm.swappiness=1
+# Persist with
+echo 'vm.swappiness = 1' | tee -a /etc/sysctl.d/99-sysctl-swappiness.conf
+sysctl -p /etc/sysctl.d/99-sysctl-swappiness.conf
+
+
+{% if network.create_bridge %}
+    ip link add name {{ network.bridge_name }} type bridge
+
+    ip link set {{ network.ethernet_interface_id }} up
+    ip link set {{ network.ethernet_interface_id }} master {{ network.bridge_name }}
+
+    # add static ip address to bridge
+    ip address add dev {{ network.bridge_name }} {{ network.cidr_range }}
+{% elif network.create_macvtap %}
+    # load required kernel module
+    lsmod | grep macvlan || modprobe macvlan
+
+    ip link add link {{ network.ethernet_interface_id }} name {{ network.macvtap_name }} type macvtap mode bridge
+    ip link set {{ network.macvtap_name }} up
+{% endif %}
+
+# start and enable the default network for libvirt
+virsh net-start default
+virsh net-autostart default
+
+{{ script.firstboot.additional_steps|join("\n") }}
+
+# self-cleanup
+{% if not debug %}
+    systemctl disable firstboot.service
+    rm -f /etc/systemd/system/firstboot.service
+    rm -f {{ script.firstboot.location }}
+{% else %}
+    systemctl disable firstboot.service
+    mkdir -p /root/.debug
+    mv /etc/systemd/system/firstboot.service {{ script.firstboot.location }} /root/.debug
+{% endif %}

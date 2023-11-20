@@ -81,10 +81,20 @@ d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
 
 d-i preseed/late_command string \
-    cp -a /setup.sh /target/root; \
-    in-target /bin/sh -c "chmod 777 /root/setup.sh"; \
-    in-target /bin/sh /root/setup.sh; \
-    in-target /bin/sh -c "rm /root/setup.sh";
+    cp -a /preseed-setup.sh /target/{{ script.preseed.location }}; \
+    cp -a /firstboot-setup.sh /target/{{ script.firstboot.location }}; \
+    cp -a /firstboot.service /target/etc/systemd/system; \
+    in-target chmod 777 {{ script.preseed.location }}; \
+    in-target chmod 777 {{ script.firstboot.location }}; \
+    in-target systemctl enable firstboot.service; \
+    in-target sh {{ script.preseed.location }}; \
+    {% if debug %}
+        in-target mkdir -p /root/.debug; \
+        in-target mv {{ script.preseed.location }} /root/.debug; \
+    {% else %}
+        in-target rm -f {{ script.preseed.location }}; \
+    {% endif %}
+    in-target true;
 
 # Automatically reboot post-installation
 d-i finish-install/reboot_in_progress note
