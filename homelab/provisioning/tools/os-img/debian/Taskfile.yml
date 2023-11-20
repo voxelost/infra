@@ -14,6 +14,11 @@ tasks:
     desc: Ensure the pdm is initiated and a virtual environment is created
     internal: true
 
+  purge-multipass:
+    cmd: multipass stop --all && multipass delete --all && multipass purge
+    desc: Ensure no multipass machines exist
+    internal: true
+
   generate-iso:
     cmd: pdm run main.py --iso-filename {{.DEBIAN_ISO_FILENAME}} --iso-url {{.DEBIAN_ISO_URL}} --target-config-file {{.TARGET_CONFIG_FILE}} --target-iso-filename {{.PRESEEDED_ISO_FILENAME}} --multipass-auth {{.MULTIPASS_AUTH}}
     desc: Generate a preseeded Debian ISO
@@ -35,6 +40,7 @@ tasks:
       LOG_LEVEL: DEBUG
     dir: src
     deps:
+      - task: purge-multipass
       - task: ensure-pdm
 
   flash-usb:
