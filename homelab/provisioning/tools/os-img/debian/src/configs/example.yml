@@ -6,4 +6,10 @@ user:
   password: user_passwd
 public_key: ""
 additional_packages: []
-additional_setup_steps: []
+script:
+  preseed:
+    location: /root/preseed-setup.sh
+    additional_steps: []
+  firstboot:
+    location: /root/firstboot-setup.sh
+    additional_steps: []
