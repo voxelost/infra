@@ -7,12 +7,12 @@ from utils.multipass import Multipass
 def build_iso(
     iso_filename: str,
     iso_url: str,
-    target_config_file: str,
+    target_config_name: str,
     target_iso_filename: str,
     multipass_auth: str,
     **_
 ):
-    with Multipass(target_config_file, multipass_auth, disk="10GB") as multipass:
+    with Multipass(target_config_name, multipass_auth, disk="10GB") as multipass:
         # TODO: implement this logic:
         # https://github.com/raspberrypi/rpi-imager/blob/qml/src/OptionsPopup.qml#L589
 

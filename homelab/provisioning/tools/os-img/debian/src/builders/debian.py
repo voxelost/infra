@@ -6,16 +6,16 @@ from utils.multipass import Multipass
 def build_iso(
     iso_filename: str,
     iso_url: str,
-    target_config_file: str,
+    target_config_name: str,
     target_iso_filename: str,
     multipass_auth: str,
     **_
 ):
-    with Multipass(target_config_file, multipass_auth) as multipass:
+    with Multipass(target_config_name, multipass_auth) as multipass:
         """
         https://stackoverflow.com/questions/59940351/how-to-mount-a-memory-filesystem-onto-a-directory
-
         """
+
         multipass.cmd("apt-get update")
         multipass.cmd("apt-get upgrade -y")
         multipass.cmd("apt-get -y install genisoimage xorriso isolinux udevil")
@@ -37,6 +37,7 @@ def build_iso(
             "preseed-setup.sh",
             "firstboot-setup.sh",
             "firstboot.service",
+            "qemu.conf",
         ]
 
         for fname in _template_files:

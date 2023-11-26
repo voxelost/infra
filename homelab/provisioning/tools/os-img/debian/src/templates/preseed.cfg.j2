@@ -37,17 +37,17 @@ d-i network-console/start select continue
 # disable login with password:
 d-i network-console/password-disabled boolean true
 
-d-i passwd/root-password password {{ root_password }}
-d-i passwd/root-password-again password {{ root_password }}
+d-i passwd/root-password password {{ root_user.password }}
+d-i passwd/root-password-again password {{ root_user.password }}
 
 d-i passwd/make-user boolean true
-d-i passwd/user-fullname string {{ user.name }}
-d-i passwd/username string {{ user.name }}
-d-i passwd/user-password password {{ user.password }}
-d-i passwd/user-password-again password {{ user.password }}
+d-i passwd/user-fullname string placeholder
+d-i passwd/username string placeholder
+d-i passwd/user-password password placeholder
+d-i passwd/user-password-again password placeholder
 d-i passwd/root-login boolean true
 
-di grub-installer/choose_bootdev string /dev/sda
+d-i grub-installer/choose_bootdev string /dev/sda
 d-i grub-pc/install_devices_disks_changed multiselect /dev/sda
 d-i grub-pc/install_devices_empty boolean false
 d-i grub-pc/install_devices multiselect /dev/sda
@@ -63,7 +63,7 @@ popularity-contest popularity-contest/participate boolean false
 
 # Individual additional packages to install
 d-i pkgsel/run_tasksel boolean false
-d-i pkgsel/include string {{ apt_packages|join(" ") }} {{ additional_packages|join(" ") }}
+d-i pkgsel/include string {{ apt.packages | join(" ") }}
 d-i pkgsel/upgrade select full-upgrade
 
 d-i partman-auto/disk string /dev/sda
@@ -81,13 +81,17 @@ d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
 
 d-i preseed/late_command string \
-    cp -a /preseed-setup.sh /target/{{ script.preseed.location }}; \
-    cp -a /firstboot-setup.sh /target/{{ script.firstboot.location }}; \
-    cp -a /firstboot.service /target/etc/systemd/system; \
+    cp /preseed-setup.sh /target/{{ script.preseed.location }}; \
+    cp /firstboot-setup.sh /target/{{ script.firstboot.location }}; \
+    cp /firstboot.service /target/etc/systemd/system; \
+    mkdir -p /etc/libvirt; \
+    cp /qemu.conf /target/etc/libvirt/qemu.conf; \
+
     in-target chmod 777 {{ script.preseed.location }}; \
     in-target chmod 777 {{ script.firstboot.location }}; \
     in-target systemctl enable firstboot.service; \
     in-target sh {{ script.preseed.location }}; \
+
     {% if debug %}
         in-target mkdir -p /root/.debug; \
         in-target mv {{ script.preseed.location }} /root/.debug; \

@@ -20,13 +20,15 @@ tasks:
     internal: true
 
   generate-iso:
-    cmd: pdm run main.py --iso-filename {{.DEBIAN_ISO_FILENAME}} --iso-url {{.DEBIAN_ISO_URL}} --target-config-file {{.TARGET_CONFIG_FILE}} --target-iso-filename {{.PRESEEDED_ISO_FILENAME}} --multipass-auth {{.MULTIPASS_AUTH}}
+    cmd: pdm run main.py --iso-filename {{.DEBIAN_ISO_FILENAME}} --iso-url {{.DEBIAN_ISO_URL}} --target-config-name {{.TARGET_CONFIG}} --target-iso-filename {{.PRESEEDED_ISO_FILENAME}} --multipass-auth {{.MULTIPASS_AUTH}}
     desc: Generate a preseeded Debian ISO
     interactive: true
     sources:
+      - templates/firstboot-setup.sh.j2
+      - templates/preseed-setup.sh.j2
+      - templates/firstboot.service.j2
       - templates/preseed.cfg.j2
-      - templates/setup.sh.j2
-      - "{{.TARGET_CONFIG_FILE}}"
+      - templates/qemu.cfg.j2
     generates:
       - .out/{{.PRESEEDED_ISO_FILENAME}}
     requires:
@@ -35,7 +37,6 @@ tasks:
     vars:
       DEBIAN_CD_SOURCE: '{{if eq .DEBIAN_NEWEST "TRUE"}}debian-cd{{else}}cdimage/archive{{end}}'
       DEBIAN_ISO_URL: https://cdimage.debian.org/{{.DEBIAN_CD_SOURCE}}/{{.DEBIAN_ISO_VERSION}}/amd64/iso-cd/{{.DEBIAN_ISO_FILENAME}}
-      TARGET_CONFIG_FILE: configs/{{.TARGET_CONFIG}}.yml
     env:
       LOG_LEVEL: DEBUG
     dir: src

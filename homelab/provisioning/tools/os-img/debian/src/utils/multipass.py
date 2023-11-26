@@ -9,7 +9,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from functools import cached_property
 from utils.vm import VM
-from utils.config import Config
+from utils.config import get_config
 
 
 class MultipassException(Exception):
@@ -22,7 +22,7 @@ class Multipass(VM):
 
     def __init__(
         self,
-        flash_target_config_file: str,
+        flash_target_config_name: str,
         auth: str,
         cpus: int = 4,
         memory: str = "8G",
@@ -30,7 +30,7 @@ class Multipass(VM):
     ):
         self._authenticate(auth)
 
-        self.config = Config(flash_target_config_file)
+        self.config = get_config(flash_target_config_name)
         self._machine_name = f"geniso-{uuid.uuid4()}"
         self._provision_vm(cpus, memory, disk)
         self.cmd(f"mkdir -p {self._workdir}", become=False, cwd=None)
@@ -167,7 +167,8 @@ class Multipass(VM):
         preseed_rendered_fname = os.path.join(self._tempdir, dest_fname)
         with open(preseed_rendered_fname, "w") as fptr:
             _template = self._jinja_env.get_template(template_name)
-            fptr.write(_template.render(self.config))
+            _rendered_template = _template.render(self.config.as_dict())
+            fptr.write(_rendered_template)
 
         return self.upload(preseed_rendered_fname, dest_fname)
 
