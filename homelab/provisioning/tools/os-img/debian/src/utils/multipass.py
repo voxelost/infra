@@ -18,7 +18,11 @@ class MultipassException(Exception):
 
 class Multipass(VM):
     _workdir = "/home/ubuntu/workspace"
-    _templates_path = "templates"
+    _templates_paths = [
+        "templates/firstboot",
+        "templates/preseed",
+        "templates",
+    ]
 
     def __init__(
         self,
@@ -132,7 +136,7 @@ class Multipass(VM):
 
     @cached_property
     def _jinja_env(self) -> Environment:
-        jinja_loader = FileSystemLoader(Multipass._templates_path)
+        jinja_loader = FileSystemLoader(Multipass._templates_paths)
         return Environment(loader=jinja_loader)
 
     @cached_property
