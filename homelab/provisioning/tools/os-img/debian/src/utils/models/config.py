@@ -6,7 +6,7 @@ from passlib.hash import md5_crypt
 class User:
     name: str = field(default='debian')
     password: str = field(default='debian')
-    password_hash: Optional[str] = field(None, init=False)
+    password_hash: Optional[str] = field(default=None, init=False)
     libvirt_user: bool = field(default=True)
     authorized_keys: List[str] = field(default_factory=list)
 
@@ -81,6 +81,10 @@ class AptConfig:
         "libvirt-clients",
         "bridge-utils",
         "libvirt-daemon-system",
+        "qemu-efi",
+
+        # dev packages
+        "virt-manager",
     ])
     update: bool = field(default=True)
     upgrade: bool = field(default=True)
