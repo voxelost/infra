@@ -1,9 +1,9 @@
 version: '3'
 
 vars:
-  DEBIAN_NEWEST: "TRUE"
+  DEBIAN_NEWEST: 'FALSE'
   DEBIAN_ISO_VERSION: 12.2.0 # 11.7.0
-  TARGET_CONFIG: nuc
+  TARGET_CONFIG: thinkpad
   MULTIPASS_AUTH: totoro
   DEBIAN_ISO_FILENAME: debian-{{.DEBIAN_ISO_VERSION}}-amd64-netinst.iso
   PRESEEDED_ISO_FILENAME: preseeded-{{.TARGET_CONFIG}}-{{.DEBIAN_ISO_FILENAME}}
@@ -29,6 +29,9 @@ tasks:
       - templates/firstboot.service.j2
       - templates/preseed.cfg.j2
       - templates/qemu.cfg.j2
+      - utils/configs/nuc.py
+      - utils/configs/thinkpad.py
+      - utils/models/config.py
     generates:
       - .out/{{.PRESEEDED_ISO_FILENAME}}
     requires:
