@@ -17,8 +17,8 @@ from libvirt import virDomain, VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT
 from models.cloud_init.metadata import MetaData
 from models.cloud_init.userdata import UserData
 from models.libvirt.snapshot import DomainSnapshot, Name, Description
-from utils.dump import stderr_redirected
-from utils.ssh import connect_ssh, connect_sftp, upload_file_path, upload_file_object, get_nuc_pkey
+from utils.dump import stderr_redirected, get_disk_image_details
+from utils.ssh import connect_ssh, connect_sftp, upload_file_path, upload_file_object, get_nuc_pkey, get_dev_pem_keyname, get_dev_hostname
 from utils.cidata import CiData
 from models.libvirt.domain import *
 
@@ -31,7 +31,10 @@ class Domain(virDomain):
         metadata: Optional[MetaData] = None,
     ):
         self._proxied = vd
-        self._wait_for_qemu_ga(delay=10)
+        try:
+            self._wait_for_qemu_ga(tries=50, delay=10)
+        except Exception as e:
+            logging.error(e)
 
         self.userdata: UserData = userdata
         self.metadata: MetaData = metadata
@@ -41,34 +44,43 @@ class Domain(virDomain):
 
     @classmethod
     def create_default(
-        cls, conn: libvirt.virConnect, memory: int = 2097152, vcpus: int = 2
+        cls, conn: libvirt.virConnect, memory: int = 2097152, vcpus: int = 4
     ):
-        machine_uuid = str(uuid.uuid4())
-        machine_name =  machine_uuid  # f"debby-auto-{machine_uuid}"
+        machine_uuid = str(uuid.uuid1()).split('-')[0]
+        machine_name =  machine_uuid
         workspace_path = Path('/root/workspace/machines', machine_uuid).as_posix()
         source_img_file = Path(workspace_path, f"{machine_name}.qcow2").as_posix()
         cidata_filepath = Path(workspace_path, "cidata.iso").as_posix()
 
         userdata = UserData.create_default()
-        metadata = MetaData(machine_name, machine_name[:15])
+        metadata = MetaData(machine_name, machine_name)
 
-        with connect_ssh("root", "nuc.local") as ssh_client:
+        logging.debug(f'machine uuid: {machine_uuid}')
+
+        with connect_ssh("root", get_dev_hostname()) as ssh_client:
             ssh_client.exec_command(
                 f"mkdir -p /root/workspace/machines {workspace_path}"
             )
 
+            chosen_img = get_disk_image_details('debian', '11', 'generic', 'amd64')
+            # chosen_img = get_disk_image_details('ubuntu', '22.04', 'kvm-optimised', 'amd64')
+            DEBIAN_QCOW_FILENAME = chosen_img['filename']
+            LIBOS_META = chosen_img['libos_meta']
+
             ssh_client.exec_command(
-                f"cp /root/workspace/.cache/debby-generic-11.qcow2 {source_img_file}"
+                f"cp /root/workspace/.cache/{DEBIAN_QCOW_FILENAME} {source_img_file}"
             )
 
             ssh_client.exec_command(
-                f"cp /root/workspace/.cache/nuc.pem {workspace_path}"
+                f"cp /root/workspace/.cache/{get_dev_pem_keyname()} {workspace_path}"
             )
 
             with connect_sftp(ssh_client) as stfp_client:
                 debug_data = {
                     'machine_uuid': machine_uuid,
                     'machine_name': machine_name,
+                    'base_img_file': DEBIAN_QCOW_FILENAME,
+                    'libos_meta': LIBOS_META,
                     'source_img_file': source_img_file,
                     'cidata_filepath': cidata_filepath,
                     'userdata': userdata.to_yaml(),
@@ -78,26 +90,33 @@ class Domain(virDomain):
                 with StringIO(json.dumps(debug_data, indent=2)) as debug_fo:
                     stfp_client.putfo(debug_fo, Path(workspace_path, 'debug_info.json').as_posix())
 
-            with connect_sftp(ssh_client) as stfp_client:
-                ci_data = CiData()
-                ci_data.add_ci_obj(userdata)
-                ci_data.add_ci_obj(metadata)
-                ci_data.build()
+            ci_data = CiData(userdata, metadata)
+            ci_data.build()
 
+            with connect_sftp(ssh_client) as stfp_client:
                 stfp_client.putfo(ci_data.file_object, cidata_filepath)
 
         _vd = conn.createXML(
             LibvirtDomain(
                 type="kvm",
-                id="1",
-                name=DomainName(machine_name),
-                metadata=Metadata(Libosinfo(Os2(id="http://debian.org/debian/11"))),
-                memory=Memory(unit="KiB", value=str(memory)),
-                vcpu=Vcpu(placement="static", value=str(vcpus)),
-                resource=Resource(ResourcePartition("/machine")),
-                os=Os1(TypeType("x86_64", "pc-q35-7.2", "hvm"), Boot("hd")),
-                features=Features(Acpi(), Apic(), Vmport("off")),
-                cpu=Cpu("host-passthrough", "none", "on"),
+                name=Name(value=machine_name),
+                metadata=Metadata(Libosinfo(os=Os2(id=LIBOS_META))),
+                memory=Memory(
+                    unit="KiB",
+                    value=str(memory)
+                ),
+                vcpu=Vcpu(value=str(vcpus)),
+                resource=Resource(partition=ResourcePartition("/machine")),
+                os=Os1(
+                    type=OsType(value="hvm"),
+                    boot=Boot(dev="hd"),
+                ),
+                features=Features(
+                    acpi=Acpi(),
+                    apic=Apic(),
+                    vmport=Vmport("off"),
+                ),
+                cpu=Cpu(mode="host-passthrough", check="none", migratable="on"),
                 clock=Clock(
                     offset="utc",
                     timers=[
@@ -109,145 +128,90 @@ class Domain(virDomain):
                 on_poweroff=OnPoweroff("destroy"),
                 on_reboot=OnReboot("restart"),
                 on_crash=OnCrash("destroy"),
-                pm=Pm(SuspendToMem("no"), SuspendToDisk("no")),
+                power_management=PowerManagement(
+                    suspend_to_mem=SuspendToMem("no"),
+                    suspend_to_disk=SuspendToDisk("no"),
+                ),
                 devices=Devices(
-                    Emulator("/usr/bin/qemu-system-x86_64"),
-                    [
+                    emulator=Emulator("/usr/bin/qemu-system-x86_64"),
+                    disks=[
                         Disk(
                             type="file",
                             device="disk",
                             driver=Driver(name="qemu", type="qcow2"),
-                            source=Source(file=source_img_file, index="2"),
-                            backing_store=BackingStore(),
+                            source=Source(file=source_img_file),
+                            # backing_store=BackingStore(),
                             target=Target(dev="vda", bus="virtio"),
-                            alias=Alias(name="virtio-disk0"),
-                            address=Address(
-                                type="pci",
-                                domain="0x0000",
-                                bus="0x04",
-                                slot="0x00",
-                                function="0x0",
-                            ),
                         ),
                         Disk(
                             type="file",
                             device="cdrom",
                             driver=Driver("qemu", "raw"),
-                            source=Source(file=cidata_filepath, index="1"),
-                            backing_store=BackingStore(),
+                            source=Source(file=cidata_filepath),
+                            # backing_store=BackingStore(),
                             target=Target(dev="sda", bus="sata"),
                             readonly=ReadOnly(),
-                            alias=Alias(name="sata0-0-0"),
-                            address=Address(
-                                type="drive",
-                                controller="0",
-                                bus="0",
-                                target="0",
-                                unit="0",
-                            ),
                         ),
                     ],
-                    Interface(
+                    interface=Interface(
                         type="network",
                         source=Source(
                             network="default",
-                            portid="bbbd2004-3294-4ecd-a1cc-f43d4f3c26a0",  # should this be unique?
-                            bridge="virbr0",
-                        ),
-                        target=Target(dev="vnet0"),
-                        model=Model(type="virtio"),
-                        alias=Alias(name="net0"),
-                        address=Address( # https://stackoverflow.com/questions/49050847/how-is-pci-segmentdomain-related-to-multiple-host-bridgesor-root-bridges/49090341#49090341
-                            type="pci",
-                            domain="0x0000",
-                            bus="0x01",
-                            slot="0x00",
-                            function="0x0",
+                            bridge='virbr0',
                         ),
                     ),
-                    Serial(
-                        type="pty",
-                        source=Source(path="/dev/pts/2"),
-                        target=Target("isa-serial", "0", Model(name="isa-serial")),
-                        alias=Alias(name="serial0"),
+                    serial=
+                        # Serial(
+                        #     type="file",
+                        #     source=Source(
+                        #         path=Path(workspace_path, 'serial.log').as_posix(),
+                        #         append='on',
+                        #     ),
+                        # ),
+                        Serial(
+                            type="pty",
+                            source=Source(path="/dev/pts/0"),
+                        ),
+
+                    console=Console(
+                        type='pty',
+                        source=Source(
+                            path='/dev/pts/0',
+                        ),
+                        target=Target(port='0'),
                     ),
-                    Console(
-                        type="pty",
-                        tty="/dev/pty/2",
-                        source=Source(path="/dev/pts/2"),
-                        target=Target("serial", "0"),
-                        alias=Alias(name="serial0"),
-                    ),
-                    Graphics(
+                    graphics=Graphics(
                         type="spice",
-                        port="5900",
+                        port="-1",
                         autoport="yes",
                         listen_attribute="127.0.0.1",
                         listen=Listen("address", "127.0.0.1"),
                         image=Image("off"),
                     ),
-                    Sound(
-                        model="ich9",
-                        alias=Alias(name="sound0"),
-                        address=Address(
-                            type="pci",
-                            domain="0x0000",
-                            bus="0x00",
-                            slot="0x1b",
-                            function="0x0",
-                        ),
-                    ),
-                    Audio(id="1", type="spice"),
-                    Video(
-                        model=Model(type="virtio", heads="1", primary="yes"),
-                        alias=Alias(name="video0"),
-                        address=Address(
-                            type="pci",
-                            domain="0x0000",
-                            bus="0x00",
-                            slot="0x01",
-                            function="0x0",
-                        ),
-                    ),
-                    Memballoon(
-                        model="virtio",
-                        alias=Alias(name="balloon0"),
-                        address=Address(
-                            type="pci",
-                            domain="0x0000",
-                            bus="0x05",
-                            slot="0x00",
-                            function="0x0",
-                        ),
-                    ),
-                    Rng(
+                    sound=Sound(model="ich9"),
+                    audio=Audio(id="1", type="spice"),
+                    video=Video(model=Model(type="virtio", heads="1", primary="yes")),
+                    memballoon=Memballoon(model="virtio"),
+                    rng=Rng(
                         model="virtio",
                         backend=Backend(model="random", value="/dev/urandom"),
-                        alias=Alias(name="rng0"),
-                        address=Address(
-                            type="pci",
-                            domain="0x0000",
-                            bus="0x06",
-                            slot="0x00",
-                            function="0x0",
-                        ),
                     ),
-                    Channel(
-                        type="unix",
-                        target=Target(
-                            type="virtio",
-                            name="org.qemu.guest_agent.0",
+                    channels=[
+                        Channel(
+                            type="unix",
+                            target=Target(
+                                type="virtio",
+                                name="org.qemu.guest_agent.0",
+                            ),
                         ),
-                    ),
+                    ],
                 ),
                 seclabels=[
-                    Seclabel(type="dynamic", model="apparmor", relabel="yes"),
                     Seclabel(
                         type="dynamic",
                         model="dac",
                         relabel="yes",
-                        label=SeclabelLabel("+0:+0"),
-                        imagelabel=SeclabelImageLabel("+0:+0"),
+                        label=SeclabelLabel(value="+0:+0")
                     ),
                 ],
             ).to_xml_string()
@@ -272,12 +236,12 @@ class Domain(virDomain):
                 )
                 time.sleep(delay)
 
-        logging.error("qemu-user-agent didn't start on time")
+        logging.error("qemu-guest-agent didn't start on time")
         raise libvirt.libvirtError("Qemu Guest Agent didn't start on time")
 
     def ip(self) -> Optional[str]:
         addresses = self.interfaceAddresses(VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT)
-        for addr in addresses["enp1s0"]["addrs"]:
+        for addr in addresses["ens3"]["addrs"]:
             if addr["type"] == 0:  # address type ipv4
                 return addr["addr"]
 
@@ -289,7 +253,7 @@ class Domain(virDomain):
             self.userdata.users[0].name,
             self.ip(),
             gateway_user="root",
-            gateway="nuc.local",
+            gateway=get_dev_hostname(),
         )
 
     def exec_ssh_cmd(
@@ -311,7 +275,7 @@ class Domain(virDomain):
                 self.userdata.users[0].name,
                 self.ip(),
                 gateway_user="root",
-                gateway="nuc.local",
+                gateway=get_dev_hostname(),
             )
         elif isinstance(src, io.IOBase):
             return upload_file_object(
@@ -320,7 +284,7 @@ class Domain(virDomain):
                 self.userdata.users[0].name,
                 self.ip(),
                 gateway_user="root",
-                gateway="nuc.local",
+                gateway=get_dev_hostname(),
             )
         else:
             raise Exception(f"Wrong argument type: {type(src)}")
