@@ -3,11 +3,15 @@ import datetime
 from utils.conn import conn_wrapper
 from wrappers.domain import Domain
 from models.libvirt.snapshot import DomainSnapshot, Name, Description
-from utils.dump import setup_logging, destroy_all_vms
+from utils.dump import setup_logging, destroy_all_vms, ensure_workspace, ensure_image_cache
+from utils.ssh import get_dev_pem_keyname
 from io import StringIO
 
+# socat -v -v TCP-LISTEN:8000,crlf,reuseaddr,fork SYSTEM:"echo HTTP/1.0 200; echo Content-Type\: text/plain; echo; cat"
 if __name__ == "__main__":
     setup_logging()
+    ensure_workspace()
+    ensure_image_cache()
 
     with conn_wrapper() as conn:
         if len(conn.listAllDomains()) > 5:
@@ -19,7 +23,7 @@ if __name__ == "__main__":
         logging.debug(f"cloud init status: {res}")
         logging.debug(f"domain time: {new_dom.getTime()}")
         logging.debug(f"domain IP: {new_dom.ip()}")
-        logging.debug(f"connection string: ssh -i nuc.pem kim@{new_dom.ip()}")
+        logging.debug(f"connection string: ssh -i {get_dev_pem_keyname()} kim@{new_dom.ip()}")
 
         logging.debug("creating a snapshot")
         preupload_snapshot = new_dom.create_snapshot()
@@ -39,3 +43,7 @@ if __name__ == "__main__":
             new_dom.exec_ssh_cmd("cat /home/kim/hello")
         except Exception as e:
             logging.error(e)
+
+        # TODO
+        # new_dom.blockInfo
+        # new_dom.blockResize
