@@ -10,6 +10,9 @@ LIBOS_METADATA_NS = "http://libosinfo.org/xmlns/libvirt/domain/1.0"
 @xml_dataclass
 @dataclass
 class Address:
+    """
+    https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/virtualization_deployment_and_administration_guide/sect-guest_virtual_machine_device_configuration-setting_addresses_for_devices
+    """
     __ns__ = None
 
     type: Optional[str] = field(default=None)
@@ -186,6 +189,7 @@ class Source:
     index: Optional[str] = field(default=None)
     path: Optional[str] = field(default=None)
     mode: Optional[str] = field(default=None)
+    append: Optional[str] = field(default=None)
 
 
 @xml_dataclass
@@ -216,16 +220,12 @@ class Timer:
 
 @xml_dataclass
 @dataclass
-class TypeType:
+class OsType:
     __ns__ = None
 
     arch: Optional[str] = field(default=None)
     machine: Optional[str] = field(default=None)
-    value: str = text(
-        field(
-            default="",
-        )
-    )
+    value: str = text(field(default=""))
 
 
 @xml_dataclass
@@ -243,14 +243,6 @@ class Vmport:
     __ns__ = None
 
     state: Optional[str] = field(default=None)
-
-
-@xml_dataclass
-@dataclass
-class Os2:
-    __ns__ = LIBOS_METADATA_NS
-
-    id: Optional[str] = field(default=None)
 
 
 @xml_dataclass
@@ -316,9 +308,15 @@ class Memballoon:
 class Os1:
     __ns__ = None
 
-    type: Optional[TypeType] = field(default=None)
+    type: Optional[OsType] = field(default=None)
     boot: Optional[Boot] = field(default=None)
 
+@xml_dataclass
+@dataclass
+class Os2:
+    __ns__ = LIBOS_METADATA_NS
+
+    id: Optional[str] = field(default=None)
 
 @xml_dataclass
 @dataclass
@@ -367,6 +365,7 @@ class Target:
     name: Optional[str] = field(default=None)
     state: Optional[str] = field(default=None)
     chassis: Optional[str] = field(default=None)
+    alias: Optional[Alias] = field(default=None)
 
 
 @xml_dataclass
@@ -465,7 +464,7 @@ class Metadata:
     __ns__ = None
 
     libosinfo: Optional[Libosinfo] = field(default=None)
-    vm_manager: Optional[VmManagerMetadata] = field(default=None)
+    # vm_manager: Optional[VmManagerMetadata] = field(default=None) # TODO
 
 
 @xml_dataclass
@@ -532,7 +531,7 @@ class Devices:
     emulator: Optional[Emulator] = field(default=None)
     disks: List[Disk] = rename(field(default_factory=list), name="disk")
     interface: Optional[Interface] = field(default=None)
-    serial: Optional[Serial] = field(default=None)
+    serial: Optional[Serial] = field(default=None) # field(default_factory=list)
     console: Optional[Console] = field(default=None)
     graphics: Optional[Graphics] = field(default=None)
     sound: Optional[Sound] = field(default=None)
@@ -540,7 +539,7 @@ class Devices:
     video: Optional[Video] = field(default=None)
     memballoon: Optional[Memballoon] = field(default=None)
     rng: Optional[Rng] = field(default=None)
-    channel: Optional[Channel] = field(default=None)
+    channels: List[Channel] = rename(field(default_factory=list), name='channel')
     inputs: List[Input] = rename(field(default_factory=list), name="input")
     controllers: List[Controller] = rename(
         field(default_factory=list), name="controller"
@@ -573,7 +572,7 @@ class OnCrash:
 
 @xml_dataclass
 @dataclass
-class DomainName:
+class Name:
     __ns__ = None
 
     value: Optional[str] = text(field(default=None))
@@ -586,7 +585,7 @@ class LibvirtDomain(XmlDataclass):
 
     type: Optional[str] = field(default=None)
     id: Optional[str] = field(default=None)
-    name: Optional[DomainName] = field(default=None)
+    name: Optional[Name] = field(default=None)
     max_memory: Optional[Memory] = rename(field(default=None), name='maxMemory')
     metadata: Optional[Metadata] = field(default=None)
     current_memory: Optional[Memory] = rename(field(default=None), name='currentMemory')
