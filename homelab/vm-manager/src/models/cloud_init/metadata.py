@@ -7,14 +7,15 @@ import yaml
 class MetaData(CloudInitObj):
     _FILENAME = 'meta-data'
 
-    instance_id: str = field(default="debby", metadata={"attr_name": "instance-id"})
-    local_hostname: str = field(
-        default="debby", metadata={"attr_name": "local-hostname"}
-    )
+    instance_id: str = field(default="debby")
+    local_hostname: str = field(default="debby")
 
     @classmethod
     def create_default(cls):
         return cls()
 
     def to_yaml(self) -> str:
-        return yaml.safe_dump(asdict(self))
+        return yaml.safe_dump({
+            'instance-id': self.instance_id,
+            'local-hostname': self.local_hostname
+        })
