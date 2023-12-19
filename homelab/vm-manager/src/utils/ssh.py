@@ -5,12 +5,19 @@ from typing import IO, Optional
 from os import PathLike
 from pathlib import Path
 
+def get_dev_host() -> str:
+    return "thinkpad"
+
+def get_dev_pem_keyname() -> str:
+    return f"{get_dev_host()}.pem"
+
+def get_dev_hostname() -> str:
+    return f"{get_dev_host()}.local"
 
 def get_nuc_pkey(
-    filepath: PathLike = "/Users/voxelost/workspace/devops/infra/homelab/vm-manager/nuc.pem",
+    filepath: PathLike = f"/Users/voxelost/workspace/devops/infra/homelab/vm-manager/{get_dev_pem_keyname()}",
 ) -> paramiko.PKey:
     return paramiko.PKey.from_path(filepath)
-
 
 @contextmanager
 def connect_ssh(
