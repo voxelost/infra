@@ -84,7 +84,7 @@ d-i preseed/late_command string \
     cp /preseed-setup.sh /target/{{ script.preseed.location }}; \
     cp /firstboot-setup.sh /target/{{ script.firstboot.location }}; \
     cp /firstboot.service /target/etc/systemd/system; \
-    mkdir -p /etc/libvirt; \
+    in-target mkdir -p /etc/libvirt; \
     cp /qemu.conf /target/etc/libvirt/qemu.conf; \
 
     in-target chmod 777 {{ script.preseed.location }}; \
