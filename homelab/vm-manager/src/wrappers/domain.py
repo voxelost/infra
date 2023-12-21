@@ -17,7 +17,7 @@ from libvirt import virDomain, VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT
 from models.cloud_init.metadata import MetaData
 from models.cloud_init.userdata import UserData
 from models.libvirt.snapshot import DomainSnapshot, Name, Description
-from utils.dump import stderr_redirected, get_disk_image_details
+from utils.dump import stderr_redirected, get_disk_image_details, get_default_domain_definition
 from utils.ssh import connect_ssh, connect_sftp, upload_file_path, upload_file_object, get_nuc_pkey, get_dev_pem_keyname, get_dev_hostname
 from utils.cidata import CiData
 from models.libvirt.domain import *
@@ -31,20 +31,24 @@ class Domain(virDomain):
         metadata: Optional[MetaData] = None,
     ):
         self._proxied = vd
-        try:
-            self._wait_for_qemu_ga(tries=50, delay=10)
-        except Exception as e:
-            logging.error(e)
 
         self.userdata: UserData = userdata
         self.metadata: MetaData = metadata
+
+        try:
+            self._wait_for_qemu_ga()
+        except Exception as e:
+            logging.error(e)
+
+        res = self.exec_ssh_cmd("cloud-init status --wait")
+        logging.debug(f"cloud init status: {res}")
 
     def __getattr__(self, name: str):
         return getattr(self._proxied, name)
 
     @classmethod
     def create_default(
-        cls, conn: libvirt.virConnect, memory: int = 2097152, vcpus: int = 4
+        cls, conn: libvirt.virConnect, memory: int = 2097152, vcpus: int = 4, disk_size: int = 10,
     ):
         machine_uuid = str(uuid.uuid1()).split('-')[0]
         machine_name =  machine_uuid
@@ -62,7 +66,7 @@ class Domain(virDomain):
                 f"mkdir -p /root/workspace/machines {workspace_path}"
             )
 
-            chosen_img = get_disk_image_details('debian', '11', 'generic', 'amd64')
+            chosen_img = get_disk_image_details('debian', '12', 'generic', 'amd64')
             # chosen_img = get_disk_image_details('ubuntu', '22.04', 'kvm-optimised', 'amd64')
             DEBIAN_QCOW_FILENAME = chosen_img['filename']
             LIBOS_META = chosen_img['libos_meta']
@@ -73,6 +77,10 @@ class Domain(virDomain):
 
             ssh_client.exec_command(
                 f"cp /root/workspace/.cache/{get_dev_pem_keyname()} {workspace_path}"
+            )
+
+            ssh_client.exec_command(
+                f"chmod 400 {workspace_path}/{get_dev_pem_keyname()}"
             )
 
             with connect_sftp(ssh_client) as stfp_client:
@@ -90,137 +98,35 @@ class Domain(virDomain):
                 with StringIO(json.dumps(debug_data, indent=2)) as debug_fo:
                     stfp_client.putfo(debug_fo, Path(workspace_path, 'debug_info.json').as_posix())
 
-            ci_data = CiData(userdata, metadata)
-            ci_data.build()
+                ci_data = CiData(userdata, metadata)
+                ci_data.build()
 
-            with connect_sftp(ssh_client) as stfp_client:
                 stfp_client.putfo(ci_data.file_object, cidata_filepath)
 
-        _vd = conn.createXML(
-            LibvirtDomain(
-                type="kvm",
-                name=Name(value=machine_name),
-                metadata=Metadata(Libosinfo(os=Os2(id=LIBOS_META))),
-                memory=Memory(
-                    unit="KiB",
-                    value=str(memory)
-                ),
-                vcpu=Vcpu(value=str(vcpus)),
-                resource=Resource(partition=ResourcePartition("/machine")),
-                os=Os1(
-                    type=OsType(value="hvm"),
-                    boot=Boot(dev="hd"),
-                ),
-                features=Features(
-                    acpi=Acpi(),
-                    apic=Apic(),
-                    vmport=Vmport("off"),
-                ),
-                cpu=Cpu(mode="host-passthrough", check="none", migratable="on"),
-                clock=Clock(
-                    offset="utc",
-                    timers=[
-                        Timer("rtc", tickpolicy="catchup"),
-                        Timer("pit", tickpolicy="delay"),
-                        Timer("hpet", present="no"),
-                    ],
-                ),
-                on_poweroff=OnPoweroff("destroy"),
-                on_reboot=OnReboot("restart"),
-                on_crash=OnCrash("destroy"),
-                power_management=PowerManagement(
-                    suspend_to_mem=SuspendToMem("no"),
-                    suspend_to_disk=SuspendToDisk("no"),
-                ),
-                devices=Devices(
-                    emulator=Emulator("/usr/bin/qemu-system-x86_64"),
-                    disks=[
-                        Disk(
-                            type="file",
-                            device="disk",
-                            driver=Driver(name="qemu", type="qcow2"),
-                            source=Source(file=source_img_file),
-                            # backing_store=BackingStore(),
-                            target=Target(dev="vda", bus="virtio"),
-                        ),
-                        Disk(
-                            type="file",
-                            device="cdrom",
-                            driver=Driver("qemu", "raw"),
-                            source=Source(file=cidata_filepath),
-                            # backing_store=BackingStore(),
-                            target=Target(dev="sda", bus="sata"),
-                            readonly=ReadOnly(),
-                        ),
-                    ],
-                    interface=Interface(
-                        type="network",
-                        source=Source(
-                            network="default",
-                            bridge='virbr0',
-                        ),
-                    ),
-                    serial=
-                        # Serial(
-                        #     type="file",
-                        #     source=Source(
-                        #         path=Path(workspace_path, 'serial.log').as_posix(),
-                        #         append='on',
-                        #     ),
-                        # ),
-                        Serial(
-                            type="pty",
-                            source=Source(path="/dev/pts/0"),
-                        ),
+            logging.debug(f'Extending {source_img_file} to 10G...')
+            _, stdout, _ = ssh_client.exec_command(f'qemu-img resize {source_img_file} 10G')
+            logging.debug(stdout.read())
 
-                    console=Console(
-                        type='pty',
-                        source=Source(
-                            path='/dev/pts/0',
-                        ),
-                        target=Target(port='0'),
-                    ),
-                    graphics=Graphics(
-                        type="spice",
-                        port="-1",
-                        autoport="yes",
-                        listen_attribute="127.0.0.1",
-                        listen=Listen("address", "127.0.0.1"),
-                        image=Image("off"),
-                    ),
-                    sound=Sound(model="ich9"),
-                    audio=Audio(id="1", type="spice"),
-                    video=Video(model=Model(type="virtio", heads="1", primary="yes")),
-                    memballoon=Memballoon(model="virtio"),
-                    rng=Rng(
-                        model="virtio",
-                        backend=Backend(model="random", value="/dev/urandom"),
-                    ),
-                    channels=[
-                        Channel(
-                            type="unix",
-                            target=Target(
-                                type="virtio",
-                                name="org.qemu.guest_agent.0",
-                            ),
-                        ),
-                    ],
-                ),
-                seclabels=[
-                    Seclabel(
-                        type="dynamic",
-                        model="dac",
-                        relabel="yes",
-                        label=SeclabelLabel(value="+0:+0")
-                    ),
-                ],
+        _vd = conn.createXML(
+            get_default_domain_definition(machine_name,
+                memory,
+                vcpus,
+                source_img_file,
+                cidata_filepath,
+                LIBOS_META,
+                serial_console=False,
+                workspace_path=workspace_path,
             ).to_xml_string()
         )
 
         return cls(_vd, userdata, metadata)
 
-    def _wait_for_qemu_ga(self, tries: int = 50, delay: int = 5):
+    def _wait_for_qemu_ga(self, tries: int = 50, delay: Optional[int] = None):
         # TODO: consider using this as a decorator like `ensure_ga`
+
+        _dynamic_delay = not delay
+        if _dynamic_delay:
+            delay = 5
 
         for i in range(tries):
             try:
@@ -232,11 +138,13 @@ class Domain(virDomain):
                     raise e
 
                 logging.debug(
-                    f"[{i+1}/{tries}] waiting for qemu-guest-agent to start..."
+                    f"[{i+1}/{tries}] waiting {delay}s for qemu-guest-agent to start..."
                 )
-                time.sleep(delay)
 
-        logging.error("qemu-guest-agent didn't start on time")
+                time.sleep(delay)
+                if _dynamic_delay:
+                    delay += 5
+
         raise libvirt.libvirtError("Qemu Guest Agent didn't start on time")
 
     def ip(self) -> Optional[str]:
@@ -291,17 +199,13 @@ class Domain(virDomain):
 
     def download_file(self, src: str, dest: str):
         with self.connect_ssh() as ssh_client:
-            stfp_client = ssh_client.open_sftp()
-            if stfp_client is None:
-                raise paramiko.SSHException("Couldn't create an SFTP client")
+            with connect_sftp(ssh_client) as sftp_client:
+                def progress(sent: int, total: int):
+                    logging.debug(f"[{sent}/{total}] Downloading file {src}")
 
-            def progress(sent: int, total: int):
-                logging.debug(f"[{sent}/{total}] Downloading file {src}")
-
-            stfp_client.get(
-                src, dest, callback=progress
-            )  # TODO: handle dest directories
-            stfp_client.close()
+                sftp_client.get(
+                    src, dest, callback=progress
+                )  # TODO: handle dest directories
 
     def create_snapshot(self) -> libvirt.virDomainSnapshot:
         _uuid = str(uuid.uuid4())

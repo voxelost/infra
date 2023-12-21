@@ -7,7 +7,8 @@ import atexit
 from pathlib import Path
 
 from contextlib import contextmanager
-from utils.ssh import connect_ssh, get_dev_hostname
+from utils.ssh import connect_ssh, get_dev_hostname, connect_sftp, get_dev_pem_keyname
+from models.libvirt.domain import *
 
 def setup_logging():
     logging.getLogger("paramiko").setLevel(logging.ERROR)
@@ -98,6 +99,18 @@ DISK_IMAGES = {
                 }
             },
         },
+        '12': {
+            '_vars': {
+                'identifier': '20231210-1591',
+                'download_path': 'https://cloud.debian.org/images/cloud/bookworm/{identifier}/{filename}',
+                'libos_meta': "http://debian.org/debian/11",
+            },
+            'generic': {
+                'amd64': {
+                    'filename': 'debian-12-generic-amd64-{identifier}.qcow2',
+                },
+            },
+        },
     },
     'ubuntu': {
         '22.04': {
@@ -135,6 +148,10 @@ def ensure_image_cache():
         cache_path = Path('/root/workspace/.cache').as_posix()
         ssh_client: paramiko.SSHClient
         ssh_client.exec_command(f'mkdir -p {cache_path}')
+        with connect_sftp(ssh_client) as sftp_client:
+            sftp_client: paramiko.SFTPClient
+            sftp_client.put(f'/Users/voxelost/workspace/devops/infra/homelab/vm-manager/{get_dev_pem_keyname()}', '/'.join([cache_path, get_dev_pem_keyname()]))
+
         for os_name, os_value in DISK_IMAGES.items():
             for version_name, version_value in os_value.items():
                 for flavor_name in filter(lambda key: key != '_vars', version_value.keys()):
@@ -144,3 +161,132 @@ def ensure_image_cache():
                         logging.debug(f'Downloading {image["filename"]} if not exists...')
                         _, stdout, _ = ssh_client.exec_command(f'cd {cache_path}; wget -N "{image["download_path"]}"')
                         stdout.read()
+
+
+def get_default_domain_definition(machine_name: str, memory: int, vcpus: int, source_img_file: str, cidata_filepath: str, libos_meta: str, serial_console: bool = True, workspace_path: Optional[str] = None) -> LibvirtDomain:
+    if not serial_console and not workspace_path:
+        raise Exception('Workspace path must be provided when serial output is set to a logfile')
+
+    _dom = LibvirtDomain(
+        type="kvm",
+        name=Name(value=machine_name),
+        metadata=Metadata(
+            libosinfo=Libosinfo(os=Os2(id=libos_meta)),
+            # vm_manager=VmManagerMetadata(data=VmManagerMetadataData(data="hello world")),
+            vm_manager=VmManagerMetadata("hello world"),
+        ),
+        memory=Memory(
+            unit="KiB",
+            value=str(memory)
+        ),
+        vcpu=Vcpu(value=str(vcpus)),
+        resource=Resource(partition=ResourcePartition("/machine")),
+        os=Os1(
+            type=OsType(value="hvm"),
+            boot=Boot(dev="hd"),
+        ),
+        features=Features(
+            acpi=Acpi(),
+            apic=Apic(),
+            vmport=Vmport("off"),
+        ),
+        cpu=Cpu(mode="host-passthrough", check="none", migratable="on"),
+        clock=Clock(
+            offset="utc",
+            timers=[
+                Timer("rtc", tickpolicy="catchup"),
+                Timer("pit", tickpolicy="delay"),
+                Timer("hpet", present="no"),
+            ],
+        ),
+        on_poweroff=OnPoweroff("destroy"),
+        on_reboot=OnReboot("restart"),
+        on_crash=OnCrash("destroy"),
+        power_management=PowerManagement(
+            suspend_to_mem=SuspendToMem("no"),
+            suspend_to_disk=SuspendToDisk("no"),
+        ),
+        devices=Devices(
+            emulator=Emulator("/usr/bin/qemu-system-x86_64"),
+            disks=[
+                Disk(
+                    type="file",
+                    device="disk",
+                    driver=Driver(name="qemu", type="qcow2"),
+                    source=Source(file=source_img_file),
+                    target=Target(dev="vda", bus="virtio"),
+                ),
+                Disk(
+                    type="file",
+                    device="cdrom",
+                    driver=Driver("qemu", "raw"),
+                    source=Source(file=cidata_filepath),
+                    target=Target(dev="sda", bus="sata"),
+                    readonly=ReadOnly(),
+                ),
+            ],
+            interface=Interface(
+                type="network",
+                source=Source(
+                    network="default",
+                    bridge='virbr0',
+                ),
+            ),
+            graphics=Graphics(
+                type="spice",
+                port="-1",
+                autoport="yes",
+                listen_attribute="127.0.0.1",
+                listen=Listen("address", "127.0.0.1"),
+                image=Image("off"),
+            ),
+            sound=Sound(model="ich9"),
+            audio=Audio(id="1", type="spice"),
+            video=Video(model=Model(type="virtio", heads="1", primary="yes")),
+            memballoon=Memballoon(model="virtio"),
+            rng=Rng(
+                model="virtio",
+                backend=Backend(model="random", value="/dev/urandom"),
+            ),
+            channels=[
+                Channel(
+                    type="unix",
+                    target=Target(
+                        type="virtio",
+                        name="org.qemu.guest_agent.0",
+                    ),
+                ),
+            ],
+        ),
+        seclabels=[
+            Seclabel(
+                type="dynamic",
+                model="dac",
+                relabel="yes",
+                label=SeclabelLabel(value="+0:+0")
+            ),
+        ],
+    )
+
+    if serial_console:
+        _dom.devices.serial = Serial(
+            type="pty",
+            source=Source(path="/dev/pts/0"),
+        )
+        _dom.devices.console = Console(
+            type='pty',
+            source=Source(
+                path='/dev/pts/0',
+            ),
+            target=Target(port='0'),
+        )
+    else:
+        _dom.devices.serial = Serial(
+            type="file",
+            source=Source(
+                path=Path(workspace_path, 'serial.log').as_posix(),
+                append='on',
+            ),
+        )
+
+    return _dom
