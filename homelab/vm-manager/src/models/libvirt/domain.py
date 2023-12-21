@@ -10,9 +10,6 @@ LIBOS_METADATA_NS = "http://libosinfo.org/xmlns/libvirt/domain/1.0"
 @xml_dataclass
 @dataclass
 class Address:
-    """
-    https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/virtualization_deployment_and_administration_guide/sect-guest_virtual_machine_device_configuration-setting_addresses_for_devices
-    """
     __ns__ = None
 
     type: Optional[str] = field(default=None)
@@ -395,7 +392,7 @@ class VmManagerMetadata:
         "internal": "https://internal.local",
     }
 
-    data: Optional[str] = text(field(default=None))
+    value: Optional[str] = text(field(default=None))
 
 
 @xml_dataclass
@@ -464,7 +461,7 @@ class Metadata:
     __ns__ = None
 
     libosinfo: Optional[Libosinfo] = field(default=None)
-    # vm_manager: Optional[VmManagerMetadata] = field(default=None) # TODO
+    vm_manager: Optional[VmManagerMetadata] = field(default=None)
 
 
 @xml_dataclass
