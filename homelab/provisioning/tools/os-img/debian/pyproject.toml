@@ -10,6 +10,7 @@ dependencies = [
     "jinja2>=3.1.2",
     "PyYAML>=6.0.1",
     "passlib>=1.7.4",
+    "qemu-qmp>=0.0.3",
 ]
 requires-python = ">=3.11"
 readme = "README.md"

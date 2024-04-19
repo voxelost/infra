@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:9bae40c405dc1ea3fde8b19be2ca32209b1843e6ac3089fcb3b67a1d0b62adaa"
+content_hash = "sha256:9e102fd968c1b30036ce15ea6fef4ad8213e427d2695f4c6b399573e3ccab229"
 
 [[package]]
 name = "attrs"
@@ -223,6 +223,16 @@ files = [
     {file = "PyYAML-6.0.1-cp312-cp312-win32.whl", hash = "sha256:d483d2cdf104e7c9fa60c544d92981f12ad66a457afae824d146093b8c294c54"},
     {file = "PyYAML-6.0.1-cp312-cp312-win_amd64.whl", hash = "sha256:0d3304d8c0adc42be59c5f8a4d9e3d7379e6955ad754aa9d6ab7a398b59dd1df"},
     {file = "PyYAML-6.0.1.tar.gz", hash = "sha256:bfdf460b1736c775f2ba9f6a92bca30bc2095067b8a9d77876d1fad6cc3b4a43"},
+]
+
+[[package]]
+name = "qemu-qmp"
+version = "0.0.3"
+requires_python = ">=3.7"
+summary = "QEMU Monitor Protocol library"
+files = [
+    {file = "qemu.qmp-0.0.3-py3-none-any.whl", hash = "sha256:9abf451e22c0964580135aef7e2b95c5da0bf63c692426da24fc38b56ff0ac8e"},
+    {file = "qemu.qmp-0.0.3.tar.gz", hash = "sha256:cbc88fbcc115ee943d84447d172c642da120220451416c2f621acf33df1e1010"},
 ]
 
 [[package]]
