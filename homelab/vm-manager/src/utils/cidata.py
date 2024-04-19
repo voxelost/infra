@@ -1,16 +1,15 @@
-import fnmatch
-import os
-import sys
-import time
 import logging
 from io import BytesIO
-from typing import Dict, IO, Union
+from typing import IO
 import pycdlib
 from pathlib import Path
 from models.cloud_init.cloud_init import CloudInitObj
 
 
 class CiData:
+    # TODO: condider merging the CiData volume into the golden image
+    # this should allow for using `genericcloud` debian image flavors
+
     def __init__(self, *ci_objects: CloudInitObj, iso_volume_id: str = "cidata"):
         self.iso_volume_id = iso_volume_id
 

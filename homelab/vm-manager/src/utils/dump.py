@@ -7,7 +7,7 @@ import atexit
 from pathlib import Path
 
 from contextlib import contextmanager
-from utils.ssh import connect_ssh, get_dev_hostname, connect_sftp, get_dev_pem_keyname
+from utils.ssh import get_dev_hostname, connect_sftp, get_dev_pem_keyname, get_dev_ssh_connwrapper
 from models.libvirt.domain import *
 
 def setup_logging():
@@ -31,7 +31,7 @@ def destroy_all_vms(conn: libvirt.virConnect = None):
             except Exception as e:
                 print(e)
 
-    with connect_ssh("root", get_dev_hostname()) as ssh_client:
+    with get_dev_ssh_connwrapper() as ssh_client:
         ssh_client.exec_command("cd /root/workspace/; rm ./machines/debby-auto-*")
 
 @contextmanager
@@ -137,14 +137,14 @@ def get_disk_image_details(os: str, version: str, flavor: str, arch: str) -> dic
 
 def ensure_workspace():
     logging.debug('Ensuring workspace directories are present...')
-    with connect_ssh("root", get_dev_hostname()) as ssh_client:
+    with get_dev_ssh_connwrapper() as ssh_client:
         ssh_client.exec_command('mkdir -p /root/workspace')
         ssh_client.exec_command('mkdir -p /root/workspace/.cache')
         ssh_client.exec_command('mkdir -p /root/workspace/machines')
 
 def ensure_image_cache():
     logging.debug('Ensuring disk image cache is present on remote host...')
-    with connect_ssh("root", get_dev_hostname()) as ssh_client:
+    with get_dev_ssh_connwrapper() as ssh_client:
         cache_path = Path('/root/workspace/.cache').as_posix()
         ssh_client: paramiko.SSHClient
         ssh_client.exec_command(f'mkdir -p {cache_path}')
@@ -162,8 +162,7 @@ def ensure_image_cache():
                         _, stdout, _ = ssh_client.exec_command(f'cd {cache_path}; wget -N "{image["download_path"]}"')
                         stdout.read()
 
-
-def get_default_domain_definition(machine_name: str, memory: int, vcpus: int, source_img_file: str, cidata_filepath: str, libos_meta: str, serial_console: bool = True, workspace_path: Optional[str] = None) -> LibvirtDomain:
+def get_default_domain_definition(machine_name: str, memory: int, vcpus: int, source_img_file: str, cidata_filepath: str, libos_meta: str, serial_console: bool = True, workspace_path: Optional[str] = None, metadata: str = '') -> LibvirtDomain:
     if not serial_console and not workspace_path:
         raise Exception('Workspace path must be provided when serial output is set to a logfile')
 
@@ -173,7 +172,7 @@ def get_default_domain_definition(machine_name: str, memory: int, vcpus: int, so
         metadata=Metadata(
             libosinfo=Libosinfo(os=Os2(id=libos_meta)),
             # vm_manager=VmManagerMetadata(data=VmManagerMetadataData(data="hello world")),
-            vm_manager=VmManagerMetadata("hello world"),
+            vm_manager=VmManagerMetadata(str(metadata)),
         ),
         memory=Memory(
             unit="KiB",
@@ -190,7 +189,10 @@ def get_default_domain_definition(machine_name: str, memory: int, vcpus: int, so
             apic=Apic(),
             vmport=Vmport("off"),
         ),
-        cpu=Cpu(mode="host-passthrough", check="none", migratable="on"),
+        cpu=Cpu(
+            mode="host-passthrough",
+            check="none",
+            migratable="on"),
         clock=Clock(
             offset="utc",
             timers=[

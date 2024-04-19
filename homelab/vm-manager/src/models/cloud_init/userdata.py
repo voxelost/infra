@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional
 from models.cloud_init.cloud_init import CloudInitObj
-from utils.ssh import get_nuc_pkey
+from utils.ssh import get_dev_pkey
 from passlib.hash import md5_crypt
 from paramiko import PKey
 
@@ -57,7 +57,7 @@ class UserData(CloudInitObj):
         if pem_key:
             default_user.add_authorized_key(pem_key)
         else:
-            default_user.add_authorized_key(get_nuc_pkey())
+            default_user.add_authorized_key(get_dev_pkey())
 
         return cls(
             users=[default_user],

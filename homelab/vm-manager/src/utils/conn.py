@@ -10,8 +10,8 @@ def conn_wrapper():
     remote_address = get_dev_hostname()
     url_params = {
         'no_verify': 1,
-        'keyfile': Path('/Users/voxelost/workspace/devops/infra/homelab/provisioning/', get_dev_host(), get_dev_pem_keyname()).as_posix(),
-        'sshauth': 'privkey',
+        # 'keyfile': Path('/Users/voxelost/workspace/devops/infra/homelab/provisioning/', get_dev_host(), get_dev_pem_keyname()).as_posix(),
+        # 'sshauth': 'privkey',
     }
     _protocols_str = '+'.join(protocols)
     _params_str = '&'.join(f'{k}={v}' for k, v in url_params.items())

@@ -1,0 +1,147 @@
+<domain type='kvm' id='20'>
+    <name>ff00e312</name>
+    <uuid>b5d93f48-6abe-4aba-a8b2-6a8624adde48</uuid>
+    <metadata>
+        <libosinfo:libosinfo xmlns:libosinfo="http://libosinfo.org/xmlns/libvirt/domain/1.0">
+            <libosinfo:os id="http://debian.org/debian/11" />
+        </libosinfo:libosinfo>
+        <internal:vm_manager xmlns:internal="https://internal.local">{
+            "machine_uuid": "ff00e312",
+            "machine_name": "ff00e312",
+            "base_img_file": "debian-12-generic-amd64-20231210-1591.qcow2",
+            "libos_meta": "http://debian.org/debian/11",
+            "source_img_file": "/root/workspace/machines/ff00e312/ff00e312.qcow2",
+            "cidata_filepath": "/root/workspace/machines/ff00e312/cidata.iso",
+            "userdata": "#cloud-config\n\npackage_update: true\npackage_upgrade: true\npackages:\n-
+            qemu-guest-agent\nruncmd:\n- systemctl enable --now qemu-guest-agent.service\nusers:\n-
+            groups: users, sudo\n hashed_passwd: $1$95gEsxRZ$VFxn8WfnEJQ.1DfBfNhYe0\n lock_passwd:
+            false\n name: kim\n shell: /bin/bash\n ssh_authorized_keys:\n - ssh-rsa
+            AAAAB3NzaC1yc2EAAAADAQABAAAD9QD3Ktvnq5P9oa4XxZ/h1tSAQnGdZkjAxCU0jlZ1UsWp9hf0/vRLlvHa6B6xaaaZZfaIuUkh3Y+y6obRbul+SZ1ru8ixj+KJkl0b0ZL20PJ0lbN3n8IiE1x53xCsXkjt0F7GHVmzUMuyguff0bnCd2Nf6O0u6ja0766NwJ5G565lBkZT7Q4u38+XZSFH4r9F9emWZxEF9EfteF8LqyLlCDAcrPDbe6iqhXqjUlTD6uNORMKh1i1U49yB6khNcy2rwJYuIFtd0KSqShhHBkWGdrsUnjN7KEEuc0ORvfryJDaEcIoqodXcYbHH2W0gE4DHl71n4l2/XKg5z1NzUWcxcJWSnmfwTkynVFqpdAm0hz+54andsya9exHbgWkqsoaZx/ecZNUySoIgnQGXp+yGUg6q0DwVDA4EdWhlmwSpJ+EU6tozzaxsRK7mZZTpC4sz/wnJNb5itjAS2vd3wxslPRliIyQFvNrNc5bGY9G4ECA6+CbVh8KexSNZD08udypiVO875TZM0WUbN+TmTtjfMAcdfYji0ZNRMv02nnMkll754KKe9BplzAjNYKy7ol3rb9/shA/aoihEi7pLhUEl6jjdT/el43MBzxSe5uJpCs/i3KYj8AcxKVqmcN1P9M5JOFqMNcT5lG3slMlfXGhZ6ZTPpSVFY2XF8GiXAvPMCfRxsZWpf3wlBNv+GKMlOOE098QKr7m97YIXsBCpDzrneZQTI5lI9tHrFDEU0I9A7qKjrnXV+j4JLXyLJ3hMUnyAgKNbNeV2rnQrRvw/3m9Svsmrn/ozWMdvc9uLUZHXojiQbGPwhy2Ycw0lheIv0F25sQSqS0UicVf63wNhy3NC7u11Pm2p9HO2qKpe2xvG5E/VS2v6Z8XErm4D3HWdoA20d4ljOU1UNTnP1HW04Xs0QjVs9CniX/1zdsNIHWV+wE74tjDVPyyF/kh4ptbf/Rt7FPksZe3eyd/YLGHf/lejo59zL+HRRkjsaA1CYzpg9NSzeSIX/MROwsV2pcRtboCnrX8L+PpbkDOor/ku96x2qj52gKi32atuKeYja+m6+3rDPbgl6XWTCUCcxfB9FZ/5JpHeCOFqKQE1O3KKODT3wrEaeWfWXWoawynwLnd/020i7oEUOBTX6z+ViONBzLkM71Boa3iVLToB/6AjbmFd3tv7KLxAqutP8emI2efrn0eDh3R0bZJ8oCy01d6jFEllIFYI/t7e8u/iPWbFKx8Shn7whgH0BFR8+KbvfCxLlmg7v4lpCEr7ucE9YZDydXaDGN37G3W5Gn3yt/0LApIh11gr+Zp82jIgdmGfhOErSop7/c/b0mndk4XCK2SICYbtLZ74FnRV\n
+            sudo:\n - ALL=(ALL) NOPASSWD:ALL\n",
+            "metadata": "instance-id: ff00e312\nlocal-hostname: ff00e312\n"
+            }</internal:vm_manager>
+    </metadata>
+    <memory unit='KiB'>2097152</memory>
+    <currentMemory unit='KiB'>2097152</currentMemory>
+    <vcpu placement='static'>4</vcpu>
+    <resource>
+        <partition>/machine</partition>
+    </resource>
+    <os>
+        <type arch='x86_64' machine='pc-i440fx-7.2'>hvm</type>
+        <boot dev='hd' />
+    </os>
+    <features>
+        <acpi />
+        <apic />
+        <vmport state='off' />
+    </features>
+    <cpu mode='host-passthrough' check='none' migratable='on' />
+    <clock offset='utc'>
+        <timer name='rtc' tickpolicy='catchup' />
+        <timer name='pit' tickpolicy='delay' />
+        <timer name='hpet' present='no' />
+    </clock>
+    <on_poweroff>destroy</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <on_crash>destroy</on_crash>
+    <pm>
+        <suspend-to-mem enabled='no' />
+        <suspend-to-disk enabled='no' />
+    </pm>
+    <devices>
+        <emulator>/usr/bin/qemu-system-x86_64</emulator>
+        <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2' />
+            <source file='/root/workspace/machines/ff00e312/ff00e312.qcow2' index='2' />
+            <backingStore />
+            <target dev='vda' bus='virtio' />
+            <alias name='virtio-disk0' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0' />
+        </disk>
+        <disk type='file' device='cdrom'>
+            <driver name='qemu' type='raw' />
+            <source file='/root/workspace/machines/ff00e312/cidata.iso' index='1' />
+            <backingStore />
+            <target dev='sda' bus='sata' />
+            <readonly />
+            <alias name='sata0-0-0' />
+            <address type='drive' controller='0' bus='0' target='0' unit='0' />
+        </disk>
+        <controller type='sata' index='0'>
+            <alias name='sata0' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0' />
+        </controller>
+        <controller type='virtio-serial' index='0'>
+            <alias name='virtio-serial0' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0' />
+        </controller>
+        <controller type='usb' index='0' model='piix3-uhci'>
+            <alias name='usb' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x2' />
+        </controller>
+        <controller type='pci' index='0' model='pci-root'>
+            <alias name='pci.0' />
+        </controller>
+        <interface type='network'>
+            <mac address='52:54:00:90:28:7b' />
+            <source network='default' portid='f0213301-bd17-4b7b-8d30-e0b791eb0fb0' bridge='virbr0' />
+            <target dev='vnet19' />
+            <model type='rtl8139' />
+            <alias name='net0' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0' />
+        </interface>
+        <serial type='file'>
+            <source path='/root/workspace/machines/ff00e312/serial.log' append='on' />
+            <target type='isa-serial' port='0'>
+                <model name='isa-serial' />
+            </target>
+            <alias name='serial0' />
+        </serial>
+        <console type='file'>
+            <source path='/root/workspace/machines/ff00e312/serial.log' append='on' />
+            <target type='serial' port='0' />
+            <alias name='serial0' />
+        </console>
+        <channel type='unix'>
+            <source mode='bind'
+                path='/var/lib/libvirt/qemu/channel/target/domain-20-ff00e312/org.qemu.guest_agent.0' />
+            <target type='virtio' name='org.qemu.guest_agent.0' state='connected' />
+            <alias name='channel0' />
+            <address type='virtio-serial' controller='0' bus='0' port='1' />
+        </channel>
+        <input type='mouse' bus='ps2'>
+            <alias name='input0' />
+        </input>
+        <input type='keyboard' bus='ps2'>
+            <alias name='input1' />
+        </input>
+        <graphics type='spice' port='5901' autoport='yes' listen='127.0.0.1'>
+            <listen type='address' address='127.0.0.1' />
+            <image compression='off' />
+        </graphics>
+        <sound model='ich9'>
+            <alias name='sound0' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0' />
+        </sound>
+        <audio id='1' type='spice' />
+        <video>
+            <model type='virtio' heads='1' primary='yes' />
+            <alias name='video0' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0' />
+        </video>
+        <memballoon model='virtio'>
+            <alias name='balloon0' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x08' function='0x0' />
+        </memballoon>
+        <rng model='virtio'>
+            <backend model='random'>/dev/urandom</backend>
+            <alias name='rng0' />
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x09' function='0x0' />
+        </rng>
+    </devices>
+    <seclabel type='dynamic' model='dac' relabel='yes'>
+        <label>+0:+0</label>
+        <imagelabel>+0:+0</imagelabel>
+    </seclabel>
+</domain>

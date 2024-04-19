@@ -14,13 +14,11 @@ if __name__ == "__main__":
     ensure_image_cache()
 
     with conn_wrapper() as conn:
-        if len(conn.listAllDomains()) > 5:
+        if conn.numOfDomains() + conn.numOfDefinedDomains() > 5:
             destroy_all_vms(conn)
 
         new_dom = Domain.create_default(conn)
-        res = new_dom.exec_ssh_cmd("cloud-init status --wait")
 
-        logging.debug(f"cloud init status: {res}")
         logging.debug(f"domain time: {new_dom.getTime()}")
         logging.debug(f"domain IP: {new_dom.ip()}")
         logging.debug(f"connection string: ssh -i {get_dev_pem_keyname()} kim@{new_dom.ip()}")
@@ -40,10 +38,15 @@ if __name__ == "__main__":
         logging.debug("reverting to the snapshot from before file upload")
         new_dom.revertToSnapshot(snapshot_fetched)
         try:
+            logging.debug('Expecting an error...')
+            # note: this can fail if the machine hasn't yet started
             new_dom.exec_ssh_cmd("cat /home/kim/hello")
         except Exception as e:
             logging.error(e)
 
-        # TODO
-        # new_dom.blockInfo
-        # new_dom.blockResize
+        storage_capacity, storage_allocation, storage_physical = new_dom.blockInfo('vda')
+        logging.debug("domain block info for device vda:")
+        logging.debug(f"storage capacity = {storage_capacity}")
+        logging.debug(f"storage allocation = {storage_allocation}")
+        logging.debug(f"storage physical = {storage_physical}")
+

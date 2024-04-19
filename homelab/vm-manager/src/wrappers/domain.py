@@ -17,8 +17,8 @@ from libvirt import virDomain, VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT
 from models.cloud_init.metadata import MetaData
 from models.cloud_init.userdata import UserData
 from models.libvirt.snapshot import DomainSnapshot, Name, Description
-from utils.dump import stderr_redirected, get_disk_image_details, get_default_domain_definition
-from utils.ssh import connect_ssh, connect_sftp, upload_file_path, upload_file_object, get_nuc_pkey, get_dev_pem_keyname, get_dev_hostname
+from utils.dump import stderr_redirected, get_disk_image_details, get_default_domain_definition, get_dev_ssh_connwrapper
+from utils.ssh import connect_ssh, connect_sftp, upload_file_path, upload_file_object, get_dev_pkey, get_dev_pem_keyname, get_dev_hostname, get_dev_proxies
 from utils.cidata import CiData
 from models.libvirt.domain import *
 
@@ -61,7 +61,7 @@ class Domain(virDomain):
 
         logging.debug(f'machine uuid: {machine_uuid}')
 
-        with connect_ssh("root", get_dev_hostname()) as ssh_client:
+        with get_dev_ssh_connwrapper() as ssh_client:
             ssh_client.exec_command(
                 f"mkdir -p /root/workspace/machines {workspace_path}"
             )
@@ -116,6 +116,7 @@ class Domain(virDomain):
                 LIBOS_META,
                 serial_console=False,
                 workspace_path=workspace_path,
+                metadata=json.dumps(debug_data),
             ).to_xml_string()
         )
 
@@ -148,6 +149,7 @@ class Domain(virDomain):
         raise libvirt.libvirtError("Qemu Guest Agent didn't start on time")
 
     def ip(self) -> Optional[str]:
+        # when using proxied connections, this sometimes panics with "libvirt: XML-RPC error : internal error: client socket is closed"
         addresses = self.interfaceAddresses(VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT)
         for addr in addresses["ens3"]["addrs"]:
             if addr["type"] == 0:  # address type ipv4
@@ -160,8 +162,7 @@ class Domain(virDomain):
         return connect_ssh(
             self.userdata.users[0].name,
             self.ip(),
-            gateway_user="root",
-            gateway=get_dev_hostname(),
+            *get_dev_proxies("root", get_dev_hostname()),
         )
 
     def exec_ssh_cmd(
@@ -182,8 +183,6 @@ class Domain(virDomain):
                 dest,
                 self.userdata.users[0].name,
                 self.ip(),
-                gateway_user="root",
-                gateway=get_dev_hostname(),
             )
         elif isinstance(src, io.IOBase):
             return upload_file_object(
@@ -191,8 +190,6 @@ class Domain(virDomain):
                 dest,
                 self.userdata.users[0].name,
                 self.ip(),
-                gateway_user="root",
-                gateway=get_dev_hostname(),
             )
         else:
             raise Exception(f"Wrong argument type: {type(src)}")
