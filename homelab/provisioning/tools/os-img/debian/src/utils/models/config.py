@@ -11,10 +11,14 @@ class User:
     authorized_keys: List[str] = field(default_factory=list)
 
     def __post_init__(self):
-        self.update_password_hash()
+        self._update_password_hash()
 
-    def update_password_hash(self) -> str:
+    def _update_password_hash(self) -> str:
         self.password_hash = str(md5_crypt.hash(self.password))
+
+    def set_password(self, password: str):
+        self.password = password
+        self._update_password_hash()
 
 @dataclass
 class Script:
@@ -77,14 +81,20 @@ class AptConfig:
         "wget",
         "libbz2-dev",
         "python3",
-        "qemu-kvm",
+        # "qemu-kvm",
         "libvirt-clients",
         "bridge-utils",
         "libvirt-daemon-system",
-        "qemu-efi",
+        # "qemu-efi",
 
         # dev packages
         "virt-manager",
+
+        # secureboot packages # TODO
+        # "ovmf",
+        # "qemu-system-x86",
+        # "gpg",
+        # "debian-keyring",
     ])
     update: bool = field(default=True)
     upgrade: bool = field(default=True)

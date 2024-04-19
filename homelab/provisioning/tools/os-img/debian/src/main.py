@@ -1,7 +1,6 @@
 import argparse
 import os
 import logging
-from utils.multipass import Multipass
 from utils.models.config import Config
 
 if __name__ == "__main__":
@@ -11,10 +10,11 @@ if __name__ == "__main__":
     parser.add_argument("--target-config-name", choices=['nuc', 'thinkpad'])
     parser.add_argument("--target-iso-filename")
     parser.add_argument("--multipass-auth")
-    parser.add_argument('--target-os', default='debian', choices=['debian', 'raspbian'])
+    parser.add_argument('--target-os', default='debian', choices=['debian', 'raspbian', '-'])
     args = parser.parse_args()
 
     logging.getLogger().setLevel(os.getenv("LOG_LEVEL", "INFO"))
+
 
     if args.target_os == "debian":
         from builders.debian import build_iso

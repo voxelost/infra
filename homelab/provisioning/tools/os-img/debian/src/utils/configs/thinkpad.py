@@ -8,3 +8,5 @@ class ThinkpadConfig(Config):
             "echo 'HandleLidSwitch=ignore' >> /etc/systemd/logind.conf",
             "echo 'HandleLidSwitchDocked=ignore' >> /etc/systemd/logind.conf",
         ]
+
+        self.network.ethernet_interface_id = 'enp0s25'
